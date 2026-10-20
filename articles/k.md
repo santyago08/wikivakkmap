@@ -1,8 +1,9 @@
 ---
-title: К
+title: Каенец
+code: Э
 category: Раса
-code: К
-summary: Полное название народа пока не записано.
+summary: ''
+image: ''
 stub: true
 ---
 
