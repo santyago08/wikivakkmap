@@ -1,9 +1,15 @@
 ---
 title: Мальха-Садд
 category: Государство
-color: "#ffe470"
-continent: Гайва
 summary: Государство на континенте Гайва.
+aliases: []
+continent: Гайва
+capital: Аль-Мальх
+regime: Конституционная монархия
+war: Акрецис
+theme: ''
+image: ''
+color: '#ffe470'
 stub: true
 ---
 
