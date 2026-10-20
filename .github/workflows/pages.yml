@@ -8,16 +8,19 @@ permissions:
   contents: read
   pages: write
   id-token: write
+# Several saves in a row: only the newest run continues, older ones are cancelled (grey, not an error).
+# Each run always builds the newest version of main, so nothing is lost when a run is cancelled,
+# and re-running an old run never brings back an old version of the site.
 concurrency:
   group: pages
-  queue: max
-  cancel-in-progress: false
+  cancel-in-progress: true
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: main               # always the newest version, even when re-running an old run
           fetch-depth: 0          # нужна история, чтобы показывать даты правок
       - uses: actions/setup-node@v4
         with:

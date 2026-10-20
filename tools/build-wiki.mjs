@@ -80,7 +80,9 @@ for (const [p, k, t] of [["vse-stati", "all", "Все статьи"], ["pravki",
 // ---------- cache busting (only on GitHub, so local files stay unchanged) ----------
 // Adds ?v=<version> to our own scripts and styles, so browsers never mix an old cached script with a new page.
 if (process.env.CI) {
-  const v = (process.env.GITHUB_SHA || Date.now().toString(36)).slice(0, 8);
+  let v = Date.now().toString(36);
+  try { v = execFileSync("git", ["rev-parse", "HEAD"], { cwd: ROOT, encoding: "utf8" }).trim(); } catch (_) {}
+  v = v.slice(0, 8);
   const stamp = html => html.replace(/(\b(?:src|href)=")((?:map\/states|wiki-data|wiki\.config|wiki-core)\.js|site\.css)(")/g, `$1$2?v=${v}$3`);
   const files = [join(ROOT, "index.html"), join(ROOT, "residents", "index.html")];
   const walk = d => readdirSync(d, { withFileTypes: true }).forEach(e => e.isDirectory() ? walk(join(d, e.name)) : e.name === "index.html" && files.push(join(d, e.name)));
