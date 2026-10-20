@@ -151,6 +151,7 @@ collections:
       - { name: category, label: Раздел, widget: hidden, default: Справка }
       - *summary
       - { name: pin, label: "Показывать на главной", widget: boolean, required: false }
+      - { name: admin, label: "Только для редакторов", widget: boolean, required: false, hint: "Посетители сайта не увидят эту статью" }
       - *stub
       - *body
 
@@ -165,5 +166,6 @@ collections:
       - { name: title, label: Название, widget: string }
       - { name: category, label: Раздел, widget: hidden, default: Сервер }
       - *summary
+      - { name: admin, label: "Только для редакторов", widget: boolean, required: false, hint: "Посетители сайта не увидят эту статью" }
       - *stub
       - *body

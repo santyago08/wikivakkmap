@@ -7,8 +7,16 @@ const plural = (n, [one, few, many]) => { const a = Math.abs(n) % 100, b = a % 1
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
 const asList = v => v == null || v === "" ? [] : Array.isArray(v) ? v : [v];
 
+/* ---------- admin mode ----------
+   Editing tools are shown only to people logged into the editor (admin/) in this browser.
+   The editor remembers the login in localStorage under "sveltia-cms.user".
+   This only hides buttons: actual editing rights are checked by GitHub. */
+const IS_ADMIN = (() => { try { return !!localStorage.getItem("sveltia-cms.user"); } catch (_) { return false; } })();
+document.documentElement.classList.toggle("is-admin", IS_ADMIN);
+
 /* ---------- articles ---------- */
-const ARTICLES = WIKI.articles;
+// Articles marked "admin: true" (instructions for editors) are hidden from visitors
+const ARTICLES = WIKI.articles.filter(a => IS_ADMIN || !a.admin);
 const ART = {}, ART_BY_NAME = {};
 ARTICLES.forEach(a => { ART[a.slug] = a; [a.title, ...asList(a.aliases)].forEach(t => ART_BY_NAME[String(t).toLowerCase()] = a); });
 const findArticle = name => ART_BY_NAME[String(name).trim().toLowerCase()] || ART[slug(name)] || null;
@@ -109,8 +117,8 @@ function linkFor(target, text) {
   if (a) return `<a class="wl" href="${articleURL(a)}" data-tip="${esc(a.slug)}">${label}</a>`;
   const c = CITY_BY_NAME[t.toLowerCase()];
   if (c) return `<a class="wl city" href="${cityURL(c)}">${label}</a>`;
-  const nu = newArticleURL(t);
-  return `<a class="wl new" href="${nu}" title="Статьи «${esc(t)}» ещё нет — нажмите, чтобы создать">${label}</a>`;
+  if (!IS_ADMIN) return `<span class="wl-missing">${label}</span>`;
+  return `<a class="wl new" href="${newArticleURL(t)}" title="Статьи «${esc(t)}» ещё нет — нажмите, чтобы создать">${label}</a>`;
 }
 function blockHTML(name, arg) {
   if (name === "категория") {

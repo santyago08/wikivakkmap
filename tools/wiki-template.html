@@ -25,6 +25,7 @@
 .side-nav a[aria-current="true"]{color:var(--foam);background:rgba(221,187,104,.13)}
 .side-nav a small{color:var(--mist-2);font-size:13.5px}
 .side-nav .act{display:block;margin-top:14px;text-align:center;background:var(--foam);color:var(--abyss);border-radius:999px;padding:8px 12px;font-weight:500}
+.side-nav .admin-note{margin:8px 0 0;text-align:center;font-size:13.5px;color:var(--mist-2)}
 .side-nav .act:hover{background:var(--brass);color:var(--abyss)}
 
 /* paper page */
@@ -173,7 +174,7 @@ a.wl.new{color:#A8483C;border-bottom:1px dashed rgba(168,72,60,.55)}
 
 <footer>
   <div><b>Канъяло</b> — ролевой мир Minecraft-сервера. Вики собрана <span id="built"></span>.</div>
-  <nav><a href="./">Атлас</a><a href="wiki/kak-redaktirovat-viki/">Как редактировать</a><a href="wiki/kak-popast-na-server/">Сервер</a></nav>
+  <nav><a href="./">Атлас</a><a class="admin-only" href="wiki/kak-redaktirovat-viki/">Как редактировать</a><a href="wiki/kak-popast-na-server/">Сервер</a></nav>
 </footer>
 
 <div class="peek sheet" id="peek" aria-hidden="true"></div>
@@ -200,8 +201,8 @@ function drawSide(cur) {
   const link = (href, text, n, key) => `<li><a href="${href}" aria-current="${key === cur}">${text}${n != null ? `<small>${n}</small>` : ""}</a></li>`;
   side.innerHTML = `<h2>Вики</h2><ul>${link("wiki/", "Главная", null, "home")}${link("wiki/kanyalo/", "О мире", null, "a/kanyalo")}${link("wiki/sluchaynaya/", "Случайная статья", null, "random")}</ul>
     <h2>Разделы</h2><ul>${CATEGORIES.filter(c => count(c.name)).map(c => link(catURL(c.name), c.plural, count(c.name), "k/" + c.name)).join("")}</ul>
-    <h2 class="hide-m">Служебное</h2><ul class="hide-m">${link("wiki/vse-stati/", "Все статьи", ARTICLES.length, "all")}${link("wiki/pravki/", "Недавние правки", null, "changes")}${link("wiki/nuzhno-napisat/", "Нужно написать", STUBS.length, "stubs")}${link("wiki/kak-redaktirovat-viki/", "Как редактировать", null, "a/kak-redaktirovat-viki")}</ul>
-    <a class="act" href="admin/">Редактор вики</a>`;
+    <h2 class="hide-m">Служебное</h2><ul class="hide-m">${link("wiki/vse-stati/", "Все статьи", ARTICLES.length, "all")}${link("wiki/pravki/", "Недавние правки", null, "changes")}${IS_ADMIN ? link("wiki/nuzhno-napisat/", "Нужно написать", STUBS.length, "stubs") + link("wiki/kak-redaktirovat-viki/", "Как редактировать", null, "a/kak-redaktirovat-viki") : ""}</ul>
+    ${IS_ADMIN ? `<a class="act" href="admin/">Редактор вики</a><p class="admin-note">Вы вошли как редактор</p>` : ""}`;
 }
 
 /* ---------- views ---------- */
@@ -267,12 +268,12 @@ function articleView(a) {
   return `<p class="crumbs"><a href="wiki/">Вики</a> › <a href="${catURL(a.category)}">${esc(catPlural(a.category))}</a></p>
     <h1>${esc(a.title)}</h1>${asList(a.aliases).length ? `<p class="aka">Также: ${asList(a.aliases).map(esc).join(", ")}</p>` : ""}
     ${withImage(infobox(a), a)}
-    ${a.stub ? `<div class="stub">Это заготовка статьи. <a href="${ed}">Помогите её дописать</a>.</div>` : ""}
+    ${a.stub ? `<div class="stub">${IS_ADMIN ? `Это заготовка статьи. <a href="${ed}">Допишите её</a>.` : "Статья ещё дописывается."}</div>` : ""}
     ${toc(body)}<div class="body">${body}</div>${autoSections(a)}
     <div class="foot">
       ${bl.length ? `<div class="links"><b>Ссылки сюда:</b> ${bl.map(x => `<a href="${articleURL(x)}">${esc(x.title)}</a>`).join(", ")}</div>` : ""}
       <div>Раздел: <a href="${catURL(a.category)}" style="color:inherit">${esc(catPlural(a.category))}</a>. Изменено ${fmtDate(a.updated)}${a.author ? `, ${esc(a.author)}` : ""}.</div>
-      <div class="acts"><a href="${ed}">Редактировать</a>${hi ? `<a href="${hi}" target="_blank" rel="noopener">История правок</a>` : ""}</div>
+      ${IS_ADMIN ? `<div class="acts"><a href="${ed}">Редактировать</a>${hi ? `<a href="${hi}" target="_blank" rel="noopener">История правок</a>` : ""}</div>` : ""}
     </div>`;
 }
 function categoryView(c) {
@@ -300,6 +301,7 @@ function changesView() {
   return `<p class="crumbs"><a href="wiki/">Вики</a></p><h1>Недавние правки</h1><p class="aka">Последние изменённые статьи</p><ul class="rows">${list.map(a => `<li>${linkFor(a.title)}<small>${fmtDate(a.updated)}${a.author ? ", " + esc(a.author) : ""}</small></li>`).join("")}</ul>`;
 }
 function stubsView() {
+  if (!IS_ADMIN) return notFound("Нужно написать");
   document.title = "Нужно написать — Вики Канъяло";
   const g = {}; STUBS.forEach(a => (g[a.category] ||= []).push(a));
   return `<p class="crumbs"><a href="wiki/">Вики</a></p><h1>Нужно написать</h1><p class="aka">${STUBS.length} ${plural(STUBS.length, ["заготовка ждёт", "заготовки ждут", "заготовок ждут"])} автора. Выберите любую и допишите.</p><div class="alpha">${Object.keys(g).map(k => `<h3>${esc(catPlural(k))}</h3><ul>${g[k].sort((x, y) => x.title.localeCompare(y.title, "ru")).map(a => `<li>${linkFor(a.title)}</li>`).join("")}</ul>`).join("")}</div>`;
@@ -315,7 +317,7 @@ function cityView(name) {
       <dt>Государство</dt><dd>${st ? linkFor(st.name) : "—"}</dd>${st ? `<dt>Континент</dt><dd>${linkFor(st.continent)}</dd>` : ""}</dl>
       <a class="ib-act" href="./#city/${encodeURIComponent(c.name)}">Показать на карте</a></aside>
     <div class="body"><p><b>${esc(c.name)}</b> — ${capOf ? `столица государства ${linkFor(capOf.name)}` : `${c.major ? "крупный город" : "город"}${st ? ` в государстве ${linkFor(st.name)}` : ""}`}.</p>
-    <p class="blank">Статьи об этом городе ещё нет. <a href="${nu}">Написать её</a>.</p></div>`;
+    <p class="blank">Статьи об этом городе ещё нет.${IS_ADMIN ? ` <a href="${nu}">Написать её</a>.` : ""}</p></div>`;
 }
 function newView() {
   document.title = "Создать статью — Вики Канъяло";
@@ -335,20 +337,20 @@ function homeView() {
   const recent = [...ARTICLES].sort((x, y) => y.updated.localeCompare(x.updated)).slice(0, 8);
   const stubs = STUBS.filter(a => a.category !== "Государство" || stateFor(a)?.lore).slice(0, 8);
   return `<div class="home"><h1>Вики Канъяло</h1>
-    <p class="lead">Летопись мира ролевого сервера: ${STATES.length} государств, ${CITIES.length} городов, ${RESIDENTS.length} жителей и ${ARTICLES.length} статей. Любой участник может дописать её.</p>
+    <p class="lead">Летопись мира ролевого сервера: ${STATES.length} государств, ${CITIES.length} городов, ${RESIDENTS.length} жителей и ${ARTICLES.length} статей.</p>
     <nav class="sections" aria-label="Разделы">${CATEGORIES.filter(c => count(c.name)).map(c => `<a href="${catURL(c.name)}"><b>${c.plural}</b><span>${count(c.name)}</span></a>`).join("")}</nav>
     <div class="cols">
       <section><h2>Статья дня</h2><div class="featured" style="--c:${pick.color}"><p class="kicker">${esc(pick.continent)}</p><h3>${linkFor(fa.title)}</h3><p>${esc(fa.summary || "")}</p>
         <p>${pick.residents.slice(0, 6).map(r => faceHTML(r, 28)).join(" ")}</p></div>
         <h2 style="margin-top:30px">Начните отсюда</h2><ul class="rows">${["Канъяло", "Великая война", "Расы и народы", "Хроника", "Города", "Организации и религии", "Галерея"].map(t => findArticle(t) ? `<li>${linkFor(t)}<small>${esc(findArticle(t).summary || "")}</small></li>` : "").join("")}</ul></section>
       <section><h2>Недавние правки</h2><ul class="rows">${recent.map(a => `<li>${linkFor(a.title)}<small>${fmtDate(a.updated)}</small></li>`).join("")}</ul>
-        <h2 style="margin-top:30px">Нужно написать</h2><ul class="rows">${stubs.map(a => `<li>${linkFor(a.title)}<small>${esc(a.category)}</small></li>`).join("")}<li><a class="wl" href="wiki/nuzhno-napisat/">Все заготовки (${STUBS.length})</a></li></ul>
+        ${IS_ADMIN ? `<h2 style="margin-top:30px">Нужно написать</h2><ul class="rows">${stubs.map(a => `<li>${linkFor(a.title)}<small>${esc(a.category)}</small></li>`).join("")}<li><a class="wl" href="wiki/nuzhno-napisat/">Все заготовки (${STUBS.length})</a></li></ul>` : ""}
         <h2 style="margin-top:30px">Для игроков</h2><ul class="rows">${byCategory("Сервер").map(a => `<li>${linkFor(a.title)}</li>`).join("")}</ul></section>
     </div></div>`;
 }
 function notFound(name) {
   const nu = newArticleURL(name);
-  return `<h1>${esc(name)}</h1><div class="body"><p>Такой статьи пока нет. <a href="${nu}">Создать её</a>.</p><p><a class="wl" href="wiki/">На главную вики</a></p></div>`;
+  return `<h1>${esc(name)}</h1><div class="body"><p>Такой статьи пока нет.${IS_ADMIN ? ` <a href="${nu}">Создать её</a>.` : ""}</p><p><a class="wl" href="wiki/">На главную вики</a></p></div>`;
 }
 
 /* ---------- router ---------- */

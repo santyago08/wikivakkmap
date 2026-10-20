@@ -172,9 +172,9 @@ function show(id, { scroll = true } = {}) {
       <dt>Великая война</dt><dd><span class="side" style="--c:${WAR_SIDES[L_.war].color}">${L_.war}</span></dd>
     </dl>
     <div class="bio">${renderMarkdown(r.article.body)}</div>
-    <p class="also"><a href="${articleURL(r.article)}">Статья о жителе в вики</a>&nbsp;&nbsp; <a href="${editURL(r.article)}">Редактировать</a></p>
+    <p class="also"><a href="${articleURL(r.article)}">Статья о жителе в вики</a>${IS_ADMIN ? `&nbsp;&nbsp; <a href="${editURL(r.article)}">Редактировать</a>` : ""}</p>
     ${r.states.length > 1 ? `<p class="also">Встречается в записях двух государств: ${r.states.map(s => STATE_BY_ID[s].name).join(" и ")}.</p>` : ""}
-    ${sk && !sk.custom ? `<p class="skin-note">Показан стандартный облик. Свой скин указывается в редакторе, в карточке жителя.</p>` : ""}`;
+    ${IS_ADMIN && sk && !sk.custom ? `<p class="skin-note">Показан стандартный облик. Свой скин указывается в редакторе, в карточке жителя.</p>` : ""}`;
   if (viewer) {
     if (sk) { sigil.hidden = true; cv.hidden = false; anim.hidden = false; viewer.loadSkin(sk.url, { model: sk.slim ? "slim" : "default" }).catch(() => {}); }
     else { sigil.hidden = false; cv.hidden = true; anim.hidden = true; document.getElementById("sigilGlyph").textContent = r.name[0]; }

@@ -407,7 +407,7 @@ function openState(id, { fly = true } = {}) {
     : `<dl class="facts"><dt>Континент</dt><dd>${s.continent}</dd><dt>Города</dt><dd>${CITIES.filter(c => c.stateObj === s).length}</dd></dl>`) +
     (s.article ? `<p class="a-sum">${esc(s.article.summary || "")}${s.article.stub ? " <span class=\"blank\">Статья пока не дописана.</span>" : ""}</p>
     <a class="read" href="${articleURL(s.article)}">Читать статью в вики</a>` : "") +
-    `<div class="a-actions">${s.article && editURL(s.article) ? `<a href="${editURL(s.article)}" >Редактировать статью</a>` : `<a href="wiki/kak-redaktirovat-viki/">Как дополнить статью</a>`}</div>`;
+    (IS_ADMIN && s.article ? `<div class="a-actions"><a href="${editURL(s.article)}">Редактировать статью</a></div>` : "");
   paintFaces(article);
   article.querySelector(".close").onclick = closeState; document.body.classList.add("reading");
   article.classList.remove("open"); void article.offsetWidth; article.classList.add("open"); article.setAttribute("aria-hidden", "false"); article.scrollTop = 0;

@@ -74,3 +74,8 @@ footer nav{display:flex;gap:20px}
 .sheet a.wl{color:#2F5B62;text-decoration:none;border-bottom:1px solid rgba(47,91,98,.35)}
 .sheet a.wl.new{color:#A8483C;border-bottom:1px dashed rgba(168,72,60,.55)}
 .sheet a.wl.city{color:#4F5D3A;border-bottom-style:dotted}
+
+/* editing tools are visible only in admin mode (see wiki-core.js) */
+.admin-only{display:none!important}
+.is-admin .admin-only{display:revert!important}
+.wl-missing{color:inherit}
