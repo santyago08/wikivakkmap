@@ -77,4 +77,15 @@ for (const [cat, pl] of Object.entries(CATS)) page(`razdel/${slug(pl)}`, "k/" + 
 for (const c of cities) page(`gorod/${slug(c.name)}`, "city/" + c.name, `${c.name} — Вики Канъяло`, `Город ${c.name} на карте мира Канъяло.`);
 for (const [p, k, t] of [["vse-stati", "all", "Все статьи"], ["pravki", "changes", "Недавние правки"], ["nuzhno-napisat", "stubs", "Нужно написать"], ["sluchaynaya", "random", "Случайная статья"]])
   page(p, k, `${t} — Вики Канъяло`, "");
+// ---------- cache busting (only on GitHub, so local files stay unchanged) ----------
+// Adds ?v=<version> to our own scripts and styles, so browsers never mix an old cached script with a new page.
+if (process.env.CI) {
+  const v = (process.env.GITHUB_SHA || Date.now().toString(36)).slice(0, 8);
+  const stamp = html => html.replace(/(\b(?:src|href)=")((?:map\/states|wiki-data|wiki\.config|wiki-core)\.js|site\.css)(")/g, `$1$2?v=${v}$3`);
+  const files = [join(ROOT, "index.html"), join(ROOT, "residents", "index.html")];
+  const walk = d => readdirSync(d, { withFileTypes: true }).forEach(e => e.isDirectory() ? walk(join(d, e.name)) : e.name === "index.html" && files.push(join(d, e.name)));
+  walk(OUT);
+  files.forEach(f => writeFileSync(f, stamp(readFileSync(f, "utf8"))));
+  console.log(`версия файлов: ${v} (${files.length} страниц)`);
+}
 console.log(`вики собрана: ${articles.length} статей, ${cities.length} городов, ${images.length} изображений, ${pages} страниц`);
