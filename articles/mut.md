@@ -1,8 +1,9 @@
 ---
-title: Мут
+title: Ацари
+code: А
 category: Раса
-code: Мут
 summary: Полное название народа пока не записано.
+image: ''
 stub: true
 ---
 
