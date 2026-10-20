@@ -2,7 +2,7 @@
 title: Ацари
 code: Мут
 category: Раса
-summary: Полное название народа пока не записано.
+summary: ''
 image: ''
 stub: true
 ---
