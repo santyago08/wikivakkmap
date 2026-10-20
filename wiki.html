@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<title>Вики Канъяло</title>
+<!-- Старый адрес вики (wiki.html#…). Перенаправляет на новые страницы. -->
+<script>
+const TR = {а:"a",б:"b",в:"v",г:"g",д:"d",е:"e",ё:"e",ж:"zh",з:"z",и:"i",й:"y",к:"k",л:"l",м:"m",н:"n",о:"o",п:"p",р:"r",с:"s",т:"t",у:"u",ф:"f",х:"h",ц:"ts",ч:"ch",ш:"sh",щ:"sch",ъ:"",ы:"y",ь:"",э:"e",ю:"yu",я:"ya"};
+const slug = s => s.toLowerCase().split("").map(c => TR[c] ?? c).join("").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+const CATS = { "Государство": "Государства", "Житель": "Жители", "Континент": "Континенты", "Раса": "Расы и народы", "Организация": "Организации",
+  "Событие": "События", "Город": "Города", "Справка": "Справка", "Сервер": "Сервер" };
+const h = decodeURIComponent(location.hash.slice(1));
+let to = "wiki/";
+if (h.startsWith("a/")) to = `wiki/${h.slice(2)}/`;
+else if (h.startsWith("k/")) to = `wiki/razdel/${slug(CATS[h.slice(2)] || h.slice(2))}/`;
+else if (h.startsWith("city/")) to = `wiki/gorod/${slug(h.slice(5))}/`;
+else to = { all: "wiki/vse-stati/", changes: "wiki/pravki/", stubs: "wiki/nuzhno-napisat/", random: "wiki/sluchaynaya/", new: "admin/" }[h] || "wiki/";
+location.replace(to);
+</script>
+</head>
+<body><p><a href="wiki/">Перейти в вики</a></p></body>
+</html>
