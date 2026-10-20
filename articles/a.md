@@ -1,8 +1,9 @@
 ---
-title: А
-category: Раса
+title: Аларанец
 code: А
-summary: Полное название народа пока не записано.
+category: Раса
+summary: ''
+image: ''
 stub: true
 ---
 
