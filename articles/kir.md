@@ -1,8 +1,9 @@
 ---
-title: Кир
+title: Кириа
+code: К
 category: Раса
-code: Кир
 summary: Полное название народа пока не записано.
+image: ''
 stub: true
 ---
 
