@@ -2,7 +2,7 @@
 title: Кириа
 code: К
 category: Раса
-summary: Полное название народа пока не записано.
+summary: ''
 image: ''
 stub: true
 ---
