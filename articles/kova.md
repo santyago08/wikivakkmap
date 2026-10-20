@@ -1,9 +1,15 @@
 ---
-title: Кова
+title: Республика Кова
 category: Государство
-color: "#75aec4"
-continent: Цакерей
 summary: Государство на континенте Цакерей.
+aliases: []
+continent: Цакерей
+capital: Кова
+regime: ''
+war: ''
+theme: ''
+image: ''
+color: '#75aec4'
 stub: true
 ---
 
