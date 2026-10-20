@@ -1,8 +1,9 @@
 ---
-title: Мех
+title: Механат
+code: М
 category: Раса
-code: Мех
-summary: Полное название народа пока не записано.
+summary: ''
+image: ''
 stub: true
 ---
 
