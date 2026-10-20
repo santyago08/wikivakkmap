@@ -2,6 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
+<base href="../">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Жители Канъяло</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -65,12 +66,12 @@
 <body>
 
 <header class="bar">
-  <a class="mark" href="index.html"><b>Канъяло</b><span>атлас мира</span></a>
+  <a class="mark" href="./"><b>Канъяло</b><span>атлас мира</span></a>
   <nav class="nav" aria-label="Разделы">
-    <a href="index.html">Атлас</a>
-    <a href="wiki.html">Вики</a>
-    <a href="residents.html" aria-current="page">Жители</a>
-    <a href="index.html#war">Великая война</a>
+    <a href="./">Атлас</a>
+    <a href="wiki/">Вики</a>
+    <a href="residents/" aria-current="page">Жители</a>
+    <a href="./#war">Великая война</a>
   </nav>
   <div class="bar-right">
     <div class="find">
@@ -105,7 +106,7 @@
 
 <footer>
   <div><b>Канъяло</b> — ролевой мир Minecraft-сервера.</div>
-  <nav><a href="index.html">Атлас</a><a href="index.html#war">Великая война</a></nav>
+  <nav><a href="./">Атлас</a><a href="./#war">Великая война</a></nav>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/skinview3d@3.1.0/bundles/skinview3d.bundle.js"></script>
@@ -163,26 +164,26 @@ function show(id, { scroll = true } = {}) {
   list.querySelectorAll(".who").forEach(b => b.setAttribute("aria-current", String(b.dataset.r === id)));
   const home = STATE_BY_ID[r.states[0]], L_ = home.lore, sk = skinOf(r);
   card.style.setProperty("--c", home.color);
-  card.innerHTML = `<p class="kicker"><a href="index.html#${home.id}">${home.name}</a></p>
+  card.innerHTML = `<p class="kicker"><a href="./#${home.id}">${home.name}</a></p>
     <h2>${r.name}</h2>
     <dl class="facts">
-      ${r.kind ? `<dt>Сущность</dt><dd>${r.kind}</dd>` : `<dt>Раса</dt><dd>${RACES[r.race] || r.race}</dd><dt>Пол</dt><dd>${sexWord(r)}</dd>`}
-      <dt>Государство</dt><dd>${r.states.map(s => `<a href="index.html#${s}">${STATE_BY_ID[s].name}</a>`).join(", ")}</dd>
+      ${r.kind ? `<dt>Сущность</dt><dd>${r.kind}</dd>` : `<dt>Народ</dt><dd><a href="${articleURL(findArticle(raceTitle(r.race)) || {slug: ''})}">${esc(raceTitle(r.race))}</a></dd><dt>Пол</dt><dd>${sexWord(r)}</dd>`}
+      <dt>Государство</dt><dd>${r.states.map(s => `<a href="./#${s}">${STATE_BY_ID[s].name}</a>`).join(", ")}</dd>
       <dt>Великая война</dt><dd><span class="side" style="--c:${WAR_SIDES[L_.war].color}">${L_.war}</span></dd>
     </dl>
     <div class="bio">${renderMarkdown(r.article.body)}</div>
-    <p class="also"><a href="${articleURL(r.article)}">Статья о жителе в вики</a>${editURL(r.article) ? `&nbsp;&nbsp; <a href="${editURL(r.article)}" target="_blank" rel="noopener">Редактировать</a>` : ""}</p>
+    <p class="also"><a href="${articleURL(r.article)}">Статья о жителе в вики</a>&nbsp;&nbsp; <a href="${editURL(r.article)}">Редактировать</a></p>
     ${r.states.length > 1 ? `<p class="also">Встречается в записях двух государств: ${r.states.map(s => STATE_BY_ID[s].name).join(" и ")}.</p>` : ""}
-    ${sk && !sk.custom ? `<p class="skin-note">Показан стандартный облик. Свой скин указывается в статье жителя, в поле skin.</p>` : ""}`;
+    ${sk && !sk.custom ? `<p class="skin-note">Показан стандартный облик. Свой скин указывается в редакторе, в карточке жителя.</p>` : ""}`;
   if (viewer) {
     if (sk) { sigil.hidden = true; cv.hidden = false; anim.hidden = false; viewer.loadSkin(sk.url, { model: sk.slim ? "slim" : "default" }).catch(() => {}); }
     else { sigil.hidden = false; cv.hidden = true; anim.hidden = true; document.getElementById("sigilGlyph").textContent = r.name[0]; }
   }
-  try { history.replaceState(null, "", "#" + id); } catch (_) {}
+  try { history.replaceState(null, "", location.pathname + "#" + id); } catch (_) {}
   if (scroll && innerWidth <= 820) view.scrollIntoView({ behavior: reduce ? "auto" : "smooth" });
 }
 
-initSearch({ onState: id => location.href = "index.html#" + id, onResident: id => { filter = "all"; renderList(); show(id); } });
+initSearch({ onState: id => location.href = "./#" + id, onResident: id => { filter = "all"; renderList(); show(id); } });
 renderList();
 const start = decodeURIComponent(location.hash.slice(1));
 show(RES_BY_ID[start] ? start : RESIDENTS[0].id, { scroll: false });

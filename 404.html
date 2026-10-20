@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Страница не найдена — Канъяло</title>
+<style>
+body{margin:0;min-height:100vh;display:grid;place-items:center;background:#0D1F25;color:#ECE7D6;font:400 18px/1.6 Georgia,serif;text-align:center;padding:24px}
+h1{font-size:44px;margin:0 0 8px}
+p{color:#A3B8B3;margin:0 0 22px}
+a{color:#DDBB68;margin:0 10px}
+</style>
+</head>
+<body>
+<main>
+  <h1>Здесь ничего нет</h1>
+  <p>Такой страницы в атласе Канъяло нет. Возможно, статью переименовали.</p>
+  <nav><a id="home" href="/">Атлас</a><a id="wiki" href="/wiki/">Вики</a></nav>
+</main>
+<script>
+// On GitHub Pages the site lives in a subfolder (/wikivakkmap/), so point the links there
+const first = location.hostname.endsWith("github.io") ? location.pathname.split("/").filter(Boolean)[0] : "";
+const root = first ? `/${first}/` : "/";
+document.getElementById("home").href = root;
+document.getElementById("wiki").href = root + "wiki/";
+</script>
+</body>
+</html>

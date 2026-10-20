@@ -125,11 +125,11 @@ body.war-mode .seal-mk{visibility:hidden!important}
 <body>
 
 <header class="bar">
-  <a class="mark" href="index.html"><b>Канъяло</b><span>атлас мира</span></a>
+  <a class="mark" href="./"><b>Канъяло</b><span>атлас мира</span></a>
   <nav class="nav" aria-label="Разделы">
-    <a href="index.html" aria-current="page">Атлас</a>
-    <a href="wiki.html">Вики</a>
-    <a href="residents.html">Жители</a>
+    <a href="./" aria-current="page">Атлас</a>
+    <a href="wiki/">Вики</a>
+    <a href="residents/">Жители</a>
     <a href="#war">Великая война</a>
   </nav>
   <div class="bar-right">
@@ -175,7 +175,7 @@ body.war-mode .seal-mk{visibility:hidden!important}
 
 <footer>
   <div><b>Канъяло</b> — ролевой мир Minecraft-сервера. Карта мира, редакция V4.</div>
-  <nav><a href="residents.html">Жители</a><a href="#states">Государства</a><a href="#war">Великая война</a></nav>
+  <nav><a href="residents/">Жители</a><a href="#states">Государства</a><a href="#war">Великая война</a></nav>
 </footer>
 
 <div class="tip sheet" id="tip" aria-hidden="true"></div>
@@ -402,12 +402,12 @@ function openState(id, { fly = true } = {}) {
       <dt>Тема</dt><dd>${L_.theme}</dd>
     </dl>
     <h3>Жители</h3>
-    <ul class="people">${s.residents.map(r => `<li><a href="residents.html#${r.id}">${faceHTML(r, 30)}<span>${r.name}<small>${residentLine(r)}</small></span></a></li>`).join("")}</ul>
+    <ul class="people">${s.residents.map(r => `<li><a href="residents/#${r.id}">${faceHTML(r, 30)}<span>${r.name}<small>${residentLine(r)}</small></span></a></li>`).join("")}</ul>
     `
     : `<dl class="facts"><dt>Континент</dt><dd>${s.continent}</dd><dt>Города</dt><dd>${CITIES.filter(c => c.stateObj === s).length}</dd></dl>`) +
     (s.article ? `<p class="a-sum">${esc(s.article.summary || "")}${s.article.stub ? " <span class=\"blank\">Статья пока не дописана.</span>" : ""}</p>
     <a class="read" href="${articleURL(s.article)}">Читать статью в вики</a>` : "") +
-    `<div class="a-actions">${s.article && editURL(s.article) ? `<a href="${editURL(s.article)}" target="_blank" rel="noopener">Редактировать статью</a>` : `<a href="wiki.html#a/kak-redaktirovat-viki">Как дополнить статью</a>`}</div>`;
+    `<div class="a-actions">${s.article && editURL(s.article) ? `<a href="${editURL(s.article)}" >Редактировать статью</a>` : `<a href="wiki/kak-redaktirovat-viki/">Как дополнить статью</a>`}</div>`;
   paintFaces(article);
   article.querySelector(".close").onclick = closeState; document.body.classList.add("reading");
   article.classList.remove("open"); void article.offsetWidth; article.classList.add("open"); article.setAttribute("aria-hidden", "false"); article.scrollTop = 0;
@@ -470,7 +470,7 @@ function focusCity(c) {
   viewer.addOverlay({ element: cityPin, location: vp().imageToViewportCoordinates(c.x, c.y), placement: OSD.Placement.BOTTOM, checkResize: false });
   flyToBox(c.x - 300, c.y - 200, c.x + 300, c.y + 200, { pad: 1, minSpan: 1500 });
 }
-initSearch({ onState: goState, onResident: id => location.href = "residents.html#" + id, onCity: focusCity });
+initSearch({ onState: goState, onResident: id => location.href = "residents/#" + id, onCity: focusCity });
 </script>
 </body>
 </html>

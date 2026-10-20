@@ -1,4 +1,2 @@
-/* Настройки вики.
-   repo — репозиторий на GitHub в виде "имя-пользователя/название", например "ivan/kanyalo".
-   На адресе *.github.io его можно не указывать: он определится сам. */
-const WIKI_CONFIG = { repo: "", branch: "main" };
+/* Настройки вики: репозиторий на GitHub, где хранятся статьи. */
+const WIKI_CONFIG = { repo: "santyago08/wikivakkmap", branch: "main" };

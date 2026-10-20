@@ -2,8 +2,12 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
+<base href="__BASE__">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Вики Канъяло</title>
+<title>__TITLE__</title>
+<meta name="description" content="__DESC__">
+<meta property="og:title" content="__TITLE__">
+<meta property="og:description" content="__DESC__">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,400;0,500;0,700;1,400&family=Alegreya+SC:wght@500;700&family=Alegreya+Sans:wght@400;500&display=swap" rel="stylesheet">
@@ -29,7 +33,7 @@
 .crumbs a{color:var(--ink-2)}
 .page h1{font:700 clamp(34px,4.4vw,52px)/1.05 var(--serif);margin:0 0 6px;text-wrap:balance}
 .page .aka{font:italic 400 17px var(--serif);color:var(--ink-2);margin:0 0 18px}
-.stub{display:flex;gap:12px;align-items:baseline;background:var(--paper-2);border-left:4px solid var(--brass);padding:10px 16px;margin:16px 0 22px;font:400 15px var(--ui);color:var(--ink-2)}
+.stub{display:block;background:var(--paper-2);border-left:4px solid var(--brass);padding:10px 16px;margin:16px 0 22px;font:400 15px var(--ui);color:var(--ink-2)}
 .stub a{color:var(--ink)}
 
 .body{font-size:18.5px;line-height:1.7}
@@ -79,6 +83,7 @@ a.wl.new{color:#A8483C;border-bottom:1px dashed rgba(168,72,60,.55)}
 .infobox .ib-act{display:block;margin-top:14px;text-align:center;background:var(--ink);color:var(--paper);text-decoration:none;border-radius:999px;padding:8px 12px;font:500 14.5px var(--ui)}
 .infobox .ib-act:hover{background:#3d3630}
 .infobox .ib-act + .ib-act{background:none;color:var(--ink);border:1px solid var(--rule);margin-top:8px}
+.ib-img{display:block;width:100%;height:auto;border-radius:3px;margin:0 0 12px;background:var(--paper-3)}
 .big-face{--s:96px;width:96px;height:96px;border-radius:6px}
 
 .toc{display:inline-block;background:var(--paper-2);border-radius:4px;padding:12px 20px 12px 16px;margin:4px 0 18px;font:400 15.5px var(--ui)}
@@ -146,12 +151,12 @@ a.wl.new{color:#A8483C;border-bottom:1px dashed rgba(168,72,60,.55)}
 <body>
 
 <header class="bar">
-  <a class="mark" href="index.html"><b>Канъяло</b><span>атлас мира</span></a>
+  <a class="mark" href="./"><b>Канъяло</b><span>атлас мира</span></a>
   <nav class="nav" aria-label="Разделы">
-    <a href="index.html">Атлас</a>
-    <a href="wiki.html" aria-current="page">Вики</a>
-    <a href="residents.html">Жители</a>
-    <a href="wiki.html#a/velikaya-voyna">Великая война</a>
+    <a href="./">Атлас</a>
+    <a href="wiki/" aria-current="page">Вики</a>
+    <a href="residents/">Жители</a>
+    <a href="wiki/velikaya-voyna/">Великая война</a>
   </nav>
   <div class="bar-right">
     <div class="find">
@@ -168,7 +173,7 @@ a.wl.new{color:#A8483C;border-bottom:1px dashed rgba(168,72,60,.55)}
 
 <footer>
   <div><b>Канъяло</b> — ролевой мир Minecraft-сервера. Вики собрана <span id="built"></span>.</div>
-  <nav><a href="index.html">Атлас</a><a href="wiki.html#a/kak-redaktirovat-viki">Как редактировать</a><a href="wiki.html#a/kak-popast-na-server">Сервер</a></nav>
+  <nav><a href="./">Атлас</a><a href="wiki/kak-redaktirovat-viki/">Как редактировать</a><a href="wiki/kak-popast-na-server/">Сервер</a></nav>
 </footer>
 
 <div class="peek sheet" id="peek" aria-hidden="true"></div>
@@ -180,22 +185,23 @@ a.wl.new{color:#A8483C;border-bottom:1px dashed rgba(168,72,60,.55)}
 <script src="wiki.config.js"></script>
 <script src="wiki-core.js"></script>
 <script>
+const PAGE = "__PAGE__";
 const page = document.getElementById("page"), side = document.getElementById("side");
 const fmtDate = iso => new Date(iso).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" });
 document.getElementById("built").textContent = fmtDate(WIKI.built);
 const repo = repoInfo();
 const STUBS = ARTICLES.filter(a => a.stub);
 const count = c => c === "Город" ? CITIES.length : byCategory(c).length;
-const catURL = c => `wiki.html#k/${encodeURIComponent(c)}`;
+const catURL = c => `wiki/razdel/${slug(catPlural(c))}/`;
 const catPlural = c => (CATEGORIES.find(x => x.name === c) || { plural: c }).plural;
 
 /* ---------- sidebar ---------- */
 function drawSide(cur) {
   const link = (href, text, n, key) => `<li><a href="${href}" aria-current="${key === cur}">${text}${n != null ? `<small>${n}</small>` : ""}</a></li>`;
-  side.innerHTML = `<h2>Вики</h2><ul>${link("wiki.html", "Главная", null, "home")}${link("wiki.html#a/kanyalo", "О мире", null, "a/kanyalo")}${link("wiki.html#random", "Случайная статья", null, "random")}</ul>
+  side.innerHTML = `<h2>Вики</h2><ul>${link("wiki/", "Главная", null, "home")}${link("wiki/kanyalo/", "О мире", null, "a/kanyalo")}${link("wiki/sluchaynaya/", "Случайная статья", null, "random")}</ul>
     <h2>Разделы</h2><ul>${CATEGORIES.filter(c => count(c.name)).map(c => link(catURL(c.name), c.plural, count(c.name), "k/" + c.name)).join("")}</ul>
-    <h2 class="hide-m">Служебное</h2><ul class="hide-m">${link("wiki.html#all", "Все статьи", ARTICLES.length, "all")}${link("wiki.html#changes", "Недавние правки", null, "changes")}${link("wiki.html#stubs", "Нужно написать", STUBS.length, "stubs")}${link("wiki.html#a/kak-redaktirovat-viki", "Как редактировать", null, "a/kak-redaktirovat-viki")}</ul>
-    <a class="act" href="wiki.html#new">Создать статью</a>`;
+    <h2 class="hide-m">Служебное</h2><ul class="hide-m">${link("wiki/vse-stati/", "Все статьи", ARTICLES.length, "all")}${link("wiki/pravki/", "Недавние правки", null, "changes")}${link("wiki/nuzhno-napisat/", "Нужно написать", STUBS.length, "stubs")}${link("wiki/kak-redaktirovat-viki/", "Как редактировать", null, "a/kak-redaktirovat-viki")}</ul>
+    <a class="act" href="admin/">Редактор вики</a>`;
 }
 
 /* ---------- views ---------- */
@@ -208,18 +214,18 @@ function infobox(a) {
       <dt>Континент</dt><dd>${linkFor(st.continent)}</dd>
       ${L ? `<dt>Столица</dt><dd>${CITY_BY_NAME[L.capital.toLowerCase()] ? linkFor(L.capital) : esc(L.capital)}</dd><dt>Режим</dt><dd>${esc(L.regime)}</dd><dt>Великая война</dt><dd><span class="side" style="--c:${WAR_SIDES[L.war].color}">${["Конгломерат", "Акрецис"].includes(L.war) ? linkFor(L.war) : esc(L.war)}</span></dd><dt>Тема</dt><dd>${esc(L.theme)}</dd>` : ""}
       <dt>Города</dt><dd>${cities.length}</dd>${st.residents.length ? `<dt>Жители</dt><dd>${st.residents.length} в записях</dd>` : ""}</dl>
-      <a class="ib-act" href="index.html#${st.id}">Показать на карте</a></aside>`;
+      <a class="ib-act" href="./#${st.id}">Показать на карте</a></aside>`;
   }
   if (r) {
     return `<aside class="infobox" style="--c:${STATE_BY_ID[r.states[0]].color}"><div class="ib-head">${faceHTML(r, 64)}<div><div class="ib-title">${esc(a.title)}</div><div class="ib-cat">Житель</div></div></div><dl>
       ${r.kind ? `<dt>Сущность</dt><dd>${esc(r.kind)}</dd>` : `${r.race ? `<dt>Народ</dt><dd>${linkFor(raceTitle(r.race))}</dd>` : ""}${r.sex ? `<dt>Пол</dt><dd>${sexWord(r)}</dd>` : ""}`}
       <dt>Государство</dt><dd>${r.states.map(id => linkFor(STATE_BY_ID[id].name)).join(", ")}</dd></dl>
-      <a class="ib-act" href="residents.html#${r.id}">Облик в 3D</a></aside>`;
+      <a class="ib-act" href="residents/#${r.id}">Облик в 3D</a></aside>`;
   }
   if (a.category === "Континент") {
     const n = STATES.filter(s => s.continent === a.title).length;
     return `<aside class="infobox"><div class="ib-head"><div><div class="ib-title">${esc(a.title)}</div><div class="ib-cat">Континент</div></div></div><dl><dt>Государства</dt><dd>${n}</dd><dt>Города</dt><dd>${CITIES.filter(c => c.stateObj && c.stateObj.continent === a.title).length}</dd></dl>
-      <a class="ib-act" href="index.html#continent/${encodeURIComponent(a.title)}">Показать на карте</a></aside>`;
+      <a class="ib-act" href="./#continent/${encodeURIComponent(a.title)}">Показать на карте</a></aside>`;
   }
   if (a.category === "Раса") {
     return `<aside class="infobox"><div class="ib-head"><div><div class="ib-title">${esc(a.title)}</div><div class="ib-cat">Народ</div></div></div><dl><dt>Обозначение</dt><dd>${esc(a.code || a.title)}</dd><dt>В записях</dt><dd>${RESIDENTS.filter(r => r.race === a.code).length}</dd></dl></aside>`;
@@ -228,6 +234,12 @@ function infobox(a) {
     return `<aside class="infobox" style="--c:${WAR_SIDES[a.side].color}"><div class="ib-head"><span class="seal" style="--c:${WAR_SIDES[a.side].color}"></span><div><div class="ib-title">${esc(a.title)}</div><div class="ib-cat">Союз Великой войны</div></div></div><dl><dt>Государства</dt><dd>${STATES.filter(s => s.lore && s.lore.war === a.side).length}</dd></dl></aside>`;
   }
   return "";
+}
+function withImage(box, a) {
+  const src = a.image || a.portrait; if (!src) return box;
+  const img = `<img class="ib-img" src="${esc(String(src).replace(/^\//, ""))}" alt="${esc(a.title)}">`;
+  return box ? box.replace(/(<aside class="infobox"[^>]*>)/, "$1" + img)
+             : `<aside class="infobox">${img}<div class="ib-title">${esc(a.title)}</div>${a.when ? `<div class="ib-cat">${esc(a.when)}</div>` : ""}</aside>`;
 }
 function autoSections(a) {
   const st = a.category === "Государство" && stateFor(a);
@@ -252,20 +264,20 @@ function articleView(a) {
   const body = renderMarkdown(a.body), bl = (BACKLINKS[a.slug] || []).sort((x, y) => x.title.localeCompare(y.title, "ru"));
   const ed = editURL(a), hi = historyURL(a);
   document.title = `${a.title} — Вики Канъяло`;
-  return `<p class="crumbs"><a href="wiki.html">Вики</a> › <a href="${catURL(a.category)}">${esc(catPlural(a.category))}</a></p>
+  return `<p class="crumbs"><a href="wiki/">Вики</a> › <a href="${catURL(a.category)}">${esc(catPlural(a.category))}</a></p>
     <h1>${esc(a.title)}</h1>${asList(a.aliases).length ? `<p class="aka">Также: ${asList(a.aliases).map(esc).join(", ")}</p>` : ""}
-    ${infobox(a)}
-    ${a.stub ? `<div class="stub">Это заготовка статьи.${ed ? ` <a href="${ed}" target="_blank" rel="noopener">Помогите её дописать</a>.` : ""}</div>` : ""}
+    ${withImage(infobox(a), a)}
+    ${a.stub ? `<div class="stub">Это заготовка статьи. <a href="${ed}">Помогите её дописать</a>.</div>` : ""}
     ${toc(body)}<div class="body">${body}</div>${autoSections(a)}
     <div class="foot">
       ${bl.length ? `<div class="links"><b>Ссылки сюда:</b> ${bl.map(x => `<a href="${articleURL(x)}">${esc(x.title)}</a>`).join(", ")}</div>` : ""}
       <div>Раздел: <a href="${catURL(a.category)}" style="color:inherit">${esc(catPlural(a.category))}</a>. Изменено ${fmtDate(a.updated)}${a.author ? `, ${esc(a.author)}` : ""}.</div>
-      <div class="acts">${ed ? `<a href="${ed}" target="_blank" rel="noopener">Редактировать</a><a href="${hi}" target="_blank" rel="noopener">История правок</a>` : `<span>Редактирование заработает, когда вики будет опубликована на GitHub. <a href="wiki.html#a/kak-redaktirovat-viki">Подробнее</a></span>`}</div>
+      <div class="acts"><a href="${ed}">Редактировать</a>${hi ? `<a href="${hi}" target="_blank" rel="noopener">История правок</a>` : ""}</div>
     </div>`;
 }
 function categoryView(c) {
   document.title = `${catPlural(c)} — Вики Канъяло`;
-  if (c === "Город") return `<p class="crumbs"><a href="wiki.html">Вики</a></p><h1>Города</h1><div class="body">${blockHTML("города")}</div>`;
+  if (c === "Город") return `<p class="crumbs"><a href="wiki/">Вики</a></p><h1>Города</h1><div class="body">${blockHTML("города")}</div>`;
   const list = byCategory(c);
   let inner;
   if (c === "Государство") {
@@ -275,22 +287,22 @@ function categoryView(c) {
     const g = {}; RESIDENTS.forEach(r => (g[STATE_BY_ID[r.states[0]].name] ||= []).push(r));
     inner = Object.keys(g).sort((x, y) => x.localeCompare(y, "ru")).map(k => `<h3>${linkFor(k)}</h3><ul>${g[k].map(r => `<li>${linkFor(r.name)}</li>`).join("")}</ul>`).join("");
   } else inner = `<ul>${list.map(a => `<li>${linkFor(a.title)}</li>`).join("")}</ul>`;
-  return `<p class="crumbs"><a href="wiki.html">Вики</a></p><h1>${esc(catPlural(c))}</h1><p class="aka">${list.length} ${plural(list.length, ["статья", "статьи", "статей"])}</p><div class="alpha">${inner}</div>`;
+  return `<p class="crumbs"><a href="wiki/">Вики</a></p><h1>${esc(catPlural(c))}</h1><p class="aka">${list.length} ${plural(list.length, ["статья", "статьи", "статей"])}</p><div class="alpha">${inner}</div>`;
 }
 function allView() {
   document.title = "Все статьи — Вики Канъяло";
   const g = {}; [...ARTICLES].sort((x, y) => x.title.localeCompare(y.title, "ru")).forEach(a => (g[a.title[0].toUpperCase()] ||= []).push(a));
-  return `<p class="crumbs"><a href="wiki.html">Вики</a></p><h1>Все статьи</h1><p class="aka">${ARTICLES.length} ${plural(ARTICLES.length, ["статья", "статьи", "статей"])} от А до Я</p><div class="alpha">${Object.keys(g).map(k => `<h3>${k}</h3><ul>${g[k].map(a => `<li>${linkFor(a.title)}</li>`).join("")}</ul>`).join("")}</div>`;
+  return `<p class="crumbs"><a href="wiki/">Вики</a></p><h1>Все статьи</h1><p class="aka">${ARTICLES.length} ${plural(ARTICLES.length, ["статья", "статьи", "статей"])} от А до Я</p><div class="alpha">${Object.keys(g).map(k => `<h3>${k}</h3><ul>${g[k].map(a => `<li>${linkFor(a.title)}</li>`).join("")}</ul>`).join("")}</div>`;
 }
 function changesView() {
   document.title = "Недавние правки — Вики Канъяло";
   const list = [...ARTICLES].sort((x, y) => y.updated.localeCompare(x.updated)).slice(0, 60);
-  return `<p class="crumbs"><a href="wiki.html">Вики</a></p><h1>Недавние правки</h1><p class="aka">Последние изменённые статьи</p><ul class="rows">${list.map(a => `<li>${linkFor(a.title)}<small>${fmtDate(a.updated)}${a.author ? ", " + esc(a.author) : ""}</small></li>`).join("")}</ul>`;
+  return `<p class="crumbs"><a href="wiki/">Вики</a></p><h1>Недавние правки</h1><p class="aka">Последние изменённые статьи</p><ul class="rows">${list.map(a => `<li>${linkFor(a.title)}<small>${fmtDate(a.updated)}${a.author ? ", " + esc(a.author) : ""}</small></li>`).join("")}</ul>`;
 }
 function stubsView() {
   document.title = "Нужно написать — Вики Канъяло";
   const g = {}; STUBS.forEach(a => (g[a.category] ||= []).push(a));
-  return `<p class="crumbs"><a href="wiki.html">Вики</a></p><h1>Нужно написать</h1><p class="aka">${STUBS.length} ${plural(STUBS.length, ["заготовка ждёт", "заготовки ждут", "заготовок ждут"])} автора. Выберите любую и допишите.</p><div class="alpha">${Object.keys(g).map(k => `<h3>${esc(catPlural(k))}</h3><ul>${g[k].sort((x, y) => x.title.localeCompare(y.title, "ru")).map(a => `<li>${linkFor(a.title)}</li>`).join("")}</ul>`).join("")}</div>`;
+  return `<p class="crumbs"><a href="wiki/">Вики</a></p><h1>Нужно написать</h1><p class="aka">${STUBS.length} ${plural(STUBS.length, ["заготовка ждёт", "заготовки ждут", "заготовок ждут"])} автора. Выберите любую и допишите.</p><div class="alpha">${Object.keys(g).map(k => `<h3>${esc(catPlural(k))}</h3><ul>${g[k].sort((x, y) => x.title.localeCompare(y.title, "ru")).map(a => `<li>${linkFor(a.title)}</li>`).join("")}</ul>`).join("")}</div>`;
 }
 function cityView(name) {
   const c = CITY_BY_NAME[name.toLowerCase()]; if (!c) return notFound(name);
@@ -298,23 +310,23 @@ function cityView(name) {
   document.title = `${c.name} — Вики Канъяло`;
   const nu = newArticleURL(c.name, "Город"), st = c.stateObj;
   const capOf = STATES.find(s => s.lore && s.lore.capital === c.name);
-  return `<p class="crumbs"><a href="wiki.html">Вики</a> › <a href="${catURL("Город")}">Города</a></p><h1>${esc(c.name)}</h1>
+  return `<p class="crumbs"><a href="wiki/">Вики</a> › <a href="${catURL("Город")}">Города</a></p><h1>${esc(c.name)}</h1>
     <aside class="infobox" style="--c:${st ? st.color : "#8A8270"}"><div class="ib-head"><div><div class="ib-title">${esc(c.name)}</div><div class="ib-cat">${capOf ? "Столица" : c.major ? "Крупный город" : "Город"}</div></div></div><dl>
       <dt>Государство</dt><dd>${st ? linkFor(st.name) : "—"}</dd>${st ? `<dt>Континент</dt><dd>${linkFor(st.continent)}</dd>` : ""}</dl>
-      <a class="ib-act" href="index.html#city/${encodeURIComponent(c.name)}">Показать на карте</a></aside>
+      <a class="ib-act" href="./#city/${encodeURIComponent(c.name)}">Показать на карте</a></aside>
     <div class="body"><p><b>${esc(c.name)}</b> — ${capOf ? `столица государства ${linkFor(capOf.name)}` : `${c.major ? "крупный город" : "город"}${st ? ` в государстве ${linkFor(st.name)}` : ""}`}.</p>
-    <p class="blank">Статьи об этом городе ещё нет.${nu ? ` <a href="${nu}" target="_blank" rel="noopener">Написать её</a>.` : ""}</p></div>`;
+    <p class="blank">Статьи об этом городе ещё нет. <a href="${nu}">Написать её</a>.</p></div>`;
 }
 function newView() {
   document.title = "Создать статью — Вики Канъяло";
-  return `<p class="crumbs"><a href="wiki.html">Вики</a></p><h1>Создать статью</h1>
+  return `<p class="crumbs"><a href="wiki/">Вики</a></p><h1>Создать статью</h1>
   ${repo ? `<div class="body"><p>Введите название и выберите раздел. Откроется редактор GitHub, где начало статьи уже будет заполнено.</p></div>
     <form id="newForm" class="body" style="display:grid;gap:12px;max-width:440px;font:400 16px var(--ui)">
       <label>Название<br><input id="nTitle" required style="width:100%;padding:8px 10px;font:inherit;border:1px solid var(--rule);border-radius:4px;background:#fffdf6"></label>
       <label>Раздел<br><select id="nCat" style="width:100%;padding:8px 10px;font:inherit;border:1px solid var(--rule);border-radius:4px;background:#fffdf6">${CATEGORIES.map(c => `<option>${c.name}</option>`).join("")}</select></label>
       <button style="justify-self:start;background:var(--ink);color:var(--paper);border:0;border-radius:999px;padding:9px 18px;font:500 15px var(--ui);cursor:pointer">Открыть редактор</button>
       <p id="nWarn" class="blank"></p></form>`
-  : `<div class="body"><p>Создавать и править статьи можно, когда вики опубликована на GitHub: каждая статья — это файл в папке <code>articles</code>. Как это устроено, описано в статье ${linkFor("Как редактировать вики")}.</p><p>Если вы работаете с файлами на компьютере, создайте новый файл <code>.md</code> в папке <code>articles</code> и запустите <code>обновить-вики.bat</code>.</p></div>`}`;
+  : `<div class="body"><p>Создавать и править статьи можно, когда вики опубликована на GitHub: каждая статья — это файл в папке <code>articles</code>. Как это устроено, описано в статье ${linkFor("Как редактировать вики")}.</p><p>Если вы работаете с файлами на компьютере, создайте новый файл <code>.md</code> в папке <code>articles</code> и запустите <code>просмотр.bat</code>.</p></div>`}`;
 }
 function homeView() {
   document.title = "Вики Канъяло";
@@ -330,18 +342,18 @@ function homeView() {
         <p>${pick.residents.slice(0, 6).map(r => faceHTML(r, 28)).join(" ")}</p></div>
         <h2 style="margin-top:30px">Начните отсюда</h2><ul class="rows">${["Канъяло", "Великая война", "Расы и народы", "Хроника", "Города", "Организации и религии", "Галерея"].map(t => findArticle(t) ? `<li>${linkFor(t)}<small>${esc(findArticle(t).summary || "")}</small></li>` : "").join("")}</ul></section>
       <section><h2>Недавние правки</h2><ul class="rows">${recent.map(a => `<li>${linkFor(a.title)}<small>${fmtDate(a.updated)}</small></li>`).join("")}</ul>
-        <h2 style="margin-top:30px">Нужно написать</h2><ul class="rows">${stubs.map(a => `<li>${linkFor(a.title)}<small>${esc(a.category)}</small></li>`).join("")}<li><a class="wl" href="wiki.html#stubs">Все заготовки (${STUBS.length})</a></li></ul>
+        <h2 style="margin-top:30px">Нужно написать</h2><ul class="rows">${stubs.map(a => `<li>${linkFor(a.title)}<small>${esc(a.category)}</small></li>`).join("")}<li><a class="wl" href="wiki/nuzhno-napisat/">Все заготовки (${STUBS.length})</a></li></ul>
         <h2 style="margin-top:30px">Для игроков</h2><ul class="rows">${byCategory("Сервер").map(a => `<li>${linkFor(a.title)}</li>`).join("")}</ul></section>
     </div></div>`;
 }
 function notFound(name) {
   const nu = newArticleURL(name);
-  return `<h1>${esc(name)}</h1><div class="body"><p>Такой статьи пока нет.${nu ? ` <a href="${nu}" target="_blank" rel="noopener">Создать её</a>.` : ""}</p><p><a class="wl" href="wiki.html">На главную вики</a></p></div>`;
+  return `<h1>${esc(name)}</h1><div class="body"><p>Такой статьи пока нет. <a href="${nu}">Создать её</a>.</p><p><a class="wl" href="wiki/">На главную вики</a></p></div>`;
 }
 
 /* ---------- router ---------- */
 function route() {
-  const h = decodeURIComponent(location.hash.slice(1));
+  const h = PAGE;
   let html, cur = "home";
   if (h === "random") { const a = ARTICLES[Math.floor(Math.random() * ARTICLES.length)]; location.replace(articleURL(a)); return; }
   if (h.startsWith("a/")) { const a = ART[h.slice(2)] || findArticle(h.slice(2)); html = a ? articleView(a) : notFound(h.slice(2)); cur = h; }
@@ -358,7 +370,6 @@ function route() {
     window.open(newArticleURL(t, document.getElementById("nCat").value), "_blank", "noopener"); };
   scrollTo({ top: 0, behavior: "auto" });
 }
-addEventListener("hashchange", route);
 page.addEventListener("click", e => {
   const s = e.target.closest("[data-sec]"); if (s) { e.preventDefault(); document.getElementById("sec-" + s.dataset.sec)?.scrollIntoView({ behavior: "smooth" }); return; }
   const lb = e.target.closest("[data-lightbox]"); if (lb) { e.preventDefault(); const d = document.createElement("div"); d.className = "lightbox"; d.innerHTML = `<img src="${lb.getAttribute("href")}" alt="">`; d.onclick = () => d.remove(); document.body.append(d); }

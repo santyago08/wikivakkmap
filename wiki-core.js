@@ -83,8 +83,8 @@ function paintFaces(root = document) {
 const faceHTML = (r, size = 32) => `<canvas class="face" width="8" height="8" data-r="${r.id}" style="--s:${size}px" aria-hidden="true"></canvas>`;
 
 /* ---------- links ---------- */
-const articleURL = a => `wiki.html#a/${a.slug}`;
-const cityURL = c => `wiki.html#city/${encodeURIComponent(c.name)}`;
+const articleURL = a => `wiki/${a.slug}/`;
+const cityURL = c => `wiki/gorod/${slug(c.name)}/`;
 // GitHub repository: from wiki.config.js, or guessed from a *.github.io address
 function repoInfo() {
   const cfg = (typeof WIKI_CONFIG !== "undefined" && WIKI_CONFIG) || {};
@@ -95,13 +95,12 @@ function repoInfo() {
   }
   return repo ? { repo, branch: cfg.branch || "main" } : null;
 }
-const editURL = a => { const r = repoInfo(); return r && `https://github.com/${r.repo}/edit/${r.branch}/articles/${a.slug}.md`; };
-const historyURL = a => { const r = repoInfo(); return r && `https://github.com/${r.repo}/commits/${r.branch}/articles/${a.slug}.md`; };
-function newArticleURL(title, category = "Справка") {
-  const r = repoInfo(); if (!r) return null;
-  const tpl = `---\ntitle: ${title}\ncategory: ${category}\nsummary: \nstub: true\n---\n\n**${title}** — \n`;
-  return `https://github.com/${r.repo}/new/${r.branch}/articles?filename=${slug(title) || "statya"}.md&value=${encodeURIComponent(tpl)}`;
-}
+// Editor (admin/) collection for each section
+const COLLECTION = { "Государство": "gosudarstva", "Житель": "zhiteli", "Город": "goroda", "Континент": "kontinenty", "Раса": "rasy",
+  "Организация": "organizatsii", "Событие": "sobytiya", "Справка": "spravka", "Сервер": "server" };
+const editURL = a => `admin/#/collections/${COLLECTION[a.category] || "spravka"}/entries/${encodeURIComponent(a.file.replace(/\.md$/, ""))}`;
+const historyURL = a => { const r = repoInfo(); return r && `https://github.com/${r.repo}/commits/${r.branch}/articles/${encodeURIComponent(a.file)}`; };
+const newArticleURL = (title, category = "Справка") => `admin/#/collections/${COLLECTION[category] || "spravka"}/new?title=${encodeURIComponent(title)}`;
 
 /* ---------- markdown with [[wikilinks]] and {{blocks}} ---------- */
 function linkFor(target, text) {
@@ -111,7 +110,7 @@ function linkFor(target, text) {
   const c = CITY_BY_NAME[t.toLowerCase()];
   if (c) return `<a class="wl city" href="${cityURL(c)}">${label}</a>`;
   const nu = newArticleURL(t);
-  return `<a class="wl new" href="${nu || "wiki.html#a/kak-redaktirovat-viki"}" title="Статьи «${esc(t)}» ещё нет — нажмите, чтобы создать"${nu ? ' target="_blank" rel="noopener"' : ""}>${label}</a>`;
+  return `<a class="wl new" href="${nu}" title="Статьи «${esc(t)}» ещё нет — нажмите, чтобы создать">${label}</a>`;
 }
 function blockHTML(name, arg) {
   if (name === "категория") {
@@ -150,7 +149,7 @@ function initSearch({ onState, onResident, onArticle, onCity } = {}) {
   const go = {
     article: onArticle || (a => location.href = articleURL(a)),
     state: onState || (id => location.href = articleURL(STATE_BY_ID[id].article || { slug: id })),
-    resident: onResident || (id => location.href = "residents.html#" + id),
+    resident: onResident || (id => location.href = "residents/#" + id),
     city: onCity || (c => location.href = cityURL(c)),
   };
   const INDEX = [

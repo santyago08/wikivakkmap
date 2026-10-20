@@ -1,39 +1,27 @@
-// Собирает вики: articles/*.md + data/cities.json + images/ → wiki-data.js
+// Собирает вики: articles/*.md + data/cities.json + images/ → wiki-data.js и страницы в папке wiki/
 // Запуск: node tools/build-wiki.mjs   (на GitHub запускается автоматически при каждой правке)
-import { readFileSync, writeFileSync, readdirSync, statSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync, readdirSync, statSync, existsSync, mkdirSync, rmSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import yaml from "./vendor/js-yaml.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const ART = join(ROOT, "articles");
 
-// --- frontmatter: "key: value", "key: [a, b]", quoted strings, true/false, numbers ---
-function parseValue(v) {
-  v = v.trim();
-  if (v.startsWith("[") && v.endsWith("]")) return v.slice(1, -1).split(",").map(s => parseValue(s)).filter(s => s !== "");
-  if (/^".*"$|^'.*'$/.test(v)) return v.slice(1, -1);
-  if (v === "true" || v === "да") return true;
-  if (v === "false" || v === "нет") return false;
-  if (/^-?\d+(\.\d+)?$/.test(v)) return Number(v);
-  return v;
-}
-function parseArticle(text) {
-  text = text.replace(/^﻿/, "").replace(/\r\n/g, "\n");
-  const meta = {};
-  let body = text;
-  const m = text.match(/^---\n([\s\S]*?)\n---\n?/);
-  if (m) {
-    body = text.slice(m[0].length);
-    for (const line of m[1].split("\n")) {
-      const k = line.match(/^([\wА-Яа-яЁё_-]+):\s*(.*)$/);
-      if (k) meta[k[1]] = parseValue(k[2]);
-    }
-  }
-  return { meta, body: body.trim() };
-}
+const TR = {а:"a",б:"b",в:"v",г:"g",д:"d",е:"e",ё:"e",ж:"zh",з:"z",и:"i",й:"y",к:"k",л:"l",м:"m",н:"n",о:"o",п:"p",р:"r",с:"s",т:"t",у:"u",ф:"f",х:"h",ц:"ts",ч:"ch",ш:"sh",щ:"sch",ъ:"",ы:"y",ь:"",э:"e",ю:"yu",я:"ya"};
+const slug = s => String(s).toLowerCase().split("").map(c => TR[c] ?? c).join("").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
 
-// --- last change date: from git history if available, else file time ---
+function parseArticle(text, name) {
+  text = text.replace(/^﻿/, "").replace(/\r\n/g, "\n");
+  const m = text.match(/^---\n([\s\S]*?)\n---\n?/);
+  if (!m) return { meta: {}, body: text.trim() };
+  let meta = {};
+  try { meta = yaml.load(m[1]) || {}; } catch (e) { console.warn(`! ${name}: ошибка в полях статьи — ${e.reason || e.message}`); }
+  for (const k of Object.keys(meta)) if (meta[k] instanceof Date) meta[k] = meta[k].toISOString().slice(0, 10);
+  return { meta, body: text.slice(m[0].length).trim() };
+}
 function lastChange(file) {
   try {
     const out = execFileSync("git", ["log", "-1", "--format=%cI|%an", "--", file], { cwd: ROOT, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
@@ -42,22 +30,51 @@ function lastChange(file) {
   return { date: statSync(file).mtime.toISOString(), author: "" };
 }
 
+// ---------- articles ----------
+const RESERVED = new Set(["razdel", "gorod", "vse-stati", "pravki", "nuzhno-napisat", "sluchaynaya"]);
+const used = new Set(RESERVED);
 const articles = [];
 for (const f of readdirSync(ART).filter(f => f.endsWith(".md")).sort()) {
   const file = join(ART, f);
-  const { meta, body } = parseArticle(readFileSync(file, "utf8"));
+  const { meta, body } = parseArticle(readFileSync(file, "utf8"), f);
   if (!meta.title) { console.warn(`! ${f}: нет поля title — пропущено`); continue; }
+  meta.title = String(meta.title).trim();
+  let s = slug(meta.title) || "statya";
+  for (let i = 2; used.has(s); i++) s = `${slug(meta.title) || "statya"}-${i}`;
+  used.add(s);
   const links = [...new Set([...body.matchAll(/\[\[([^\]|#]+)(?:#[^\]|]*)?(?:\|[^\]]*)?\]\]/g)].map(x => x[1].trim()))];
   const { date, author } = lastChange(file);
-  articles.push({ slug: f.slice(0, -3), ...meta, body, links, updated: date, author });
+  articles.push({ ...meta, slug: s, file: f, body, links, updated: date, author });
 }
-
 const cities = existsSync(join(ROOT, "data", "cities.json")) ? JSON.parse(readFileSync(join(ROOT, "data", "cities.json"), "utf8")) : [];
 const IMG = join(ROOT, "images");
 const images = existsSync(IMG) ? readdirSync(IMG).filter(f => /\.(png|jpe?g|webp|gif)$/i.test(f)).sort()
   .map(f => ({ file: `images/${f}`, caption: f.replace(/\.[^.]+$/, "").replace(/[_-]+/g, " ") })) : [];
-
-const data = { built: new Date().toISOString(), articles, cities, images };
 writeFileSync(join(ROOT, "wiki-data.js"),
-  "/* Собрано автоматически из папки articles/ — не редактируйте вручную. */\nconst WIKI = " + JSON.stringify(data) + ";\n");
-console.log(`вики собрана: ${articles.length} статей, ${cities.length} городов, ${images.length} изображений`);
+  "/* Собрано автоматически из папки articles/ — не редактируйте вручную. */\nconst WIKI = " +
+  JSON.stringify({ built: new Date().toISOString(), articles, cities, images }) + ";\n");
+
+// ---------- pages ----------
+const TPL = readFileSync(join(ROOT, "tools", "wiki-template.html"), "utf8");
+const OUT = join(ROOT, "wiki");
+rmSync(OUT, { recursive: true, force: true });
+let pages = 0;
+function page(path, key, title, desc) {
+  const depth = path.split("/").filter(Boolean).length;
+  const dir = join(OUT, ...path.split("/").filter(Boolean));
+  mkdirSync(dir, { recursive: true });
+  const html = TPL.replace("__BASE__", "../".repeat(depth + 1))
+    .replace("__PAGE__", JSON.stringify(key).slice(1, -1))
+    .replace(/__TITLE__/g, esc(title)).replace(/__DESC__/g, esc(desc || ""));
+  writeFileSync(join(dir, "index.html"), html);
+  pages++;
+}
+const CATS = { "Государство": "Государства", "Житель": "Жители", "Континент": "Континенты", "Раса": "Расы и народы", "Организация": "Организации",
+  "Событие": "События", "Город": "Города", "Справка": "Справка", "Сервер": "Сервер" };
+page("", "home", "Вики Канъяло", "Летопись мира ролевого сервера: государства, жители, города и история.");
+for (const a of articles) page(a.slug, "a/" + a.slug, `${a.title} — Вики Канъяло`, a.summary || "");
+for (const [cat, pl] of Object.entries(CATS)) page(`razdel/${slug(pl)}`, "k/" + cat, `${pl} — Вики Канъяло`, `Раздел «${pl}» вики Канъяло.`);
+for (const c of cities) page(`gorod/${slug(c.name)}`, "city/" + c.name, `${c.name} — Вики Канъяло`, `Город ${c.name} на карте мира Канъяло.`);
+for (const [p, k, t] of [["vse-stati", "all", "Все статьи"], ["pravki", "changes", "Недавние правки"], ["nuzhno-napisat", "stubs", "Нужно написать"], ["sluchaynaya", "random", "Случайная статья"]])
+  page(p, k, `${t} — Вики Канъяло`, "");
+console.log(`вики собрана: ${articles.length} статей, ${cities.length} городов, ${images.length} изображений, ${pages} страниц`);

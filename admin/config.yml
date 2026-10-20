@@ -1,0 +1,169 @@
+# Настройки редактора вики (Sveltia CMS). Открывается по адресу …/admin/
+backend:
+  name: github
+  repo: santyago08/wikivakkmap
+  branch: main
+  commit_messages:
+    create: "Новая статья: {{slug}}"
+    update: "Правка: {{slug}}"
+    delete: "Удалена статья: {{slug}}"
+    uploadMedia: "Картинка: {{path}}"
+    deleteMedia: "Удалена картинка: {{path}}"
+
+site_url: https://santyago08.github.io/wikivakkmap/
+display_url: https://santyago08.github.io/wikivakkmap/wiki/
+media_folder: images
+public_folder: images
+
+
+collections:
+  - name: gosudarstva
+    label: Государства
+    label_singular: Государство
+    folder: articles
+    create: true
+    slug: "{{title}}"
+    filter: { field: category, value: Государство }
+    sortable_fields: [title]
+    fields:
+      - { name: title, label: Название, widget: string }
+      - { name: category, label: Раздел, widget: hidden, default: Государство }
+      - &summary { name: summary, label: "Кратко", widget: string, required: false, hint: "Одно предложение — показывается в подсказках и списках" }
+      - { name: aliases, label: "Другие названия", widget: list, required: false }
+      - { name: continent, label: Континент, widget: select, required: false, options: [Афана, Гайва, Дзайвелл, Заккервад, Зинсейда, Мирам, Равейя, Ревен, Цакерей] }
+      - { name: capital, label: Столица, widget: string, required: false }
+      - { name: regime, label: "Форма правления", widget: string, required: false }
+      - { name: war, label: "Сторона в Великой войне", widget: select, required: false, options: [Конгломерат, Акрецис, против всех, отсутствует] }
+      - { name: theme, label: "Тема (музыка)", widget: string, required: false }
+      - { name: image, label: "Герб или флаг", widget: image, required: false }
+      - { name: color, label: "Цвет на карте", widget: string, required: false, hint: "Не меняйте: по этому цвету государство находится на карте" }
+      - &stub { name: stub, label: "Заготовка (статья не дописана)", widget: boolean, default: true, required: false }
+      - &body { name: body, label: "Текст статьи", widget: markdown, required: false, hint: "Ссылка на другую статью: [[Название]] или [[Название|свой текст]]" }
+
+  - name: zhiteli
+    label: Жители
+    label_singular: Житель
+    folder: articles
+    create: true
+    slug: "{{title}}"
+    filter: { field: category, value: Житель }
+    sortable_fields: [title]
+    fields:
+      - { name: title, label: Имя, widget: string }
+      - { name: category, label: Раздел, widget: hidden, default: Житель }
+      - *summary
+      - { name: states, label: Государство, widget: relation, collection: gosudarstva, search_fields: [title], value_field: title, display_fields: [title], multiple: true }
+      - { name: race, label: "Народ (обозначение)", widget: relation, collection: rasy, search_fields: [title, code], value_field: code, display_fields: [title], required: false }
+      - { name: sex, label: Пол, widget: select, options: [М, Ж], required: false }
+      - { name: kind, label: "Особая сущность", widget: string, required: false, hint: "Только для не-людей, например «Великий Червь». У таких жителей нет 3D-облика" }
+      - { name: skin, label: "Скин", widget: string, required: false, hint: "Ник Minecraft-аккаунта со скином или путь к файлу, например images/skin-ivan.png" }
+      - { name: slim, label: "Тонкие руки (модель Алекс)", widget: boolean, required: false }
+      - { name: portrait, label: Портрет, widget: image, required: false }
+      - *stub
+      - *body
+
+  - name: goroda
+    label: Города
+    label_singular: Город
+    folder: articles
+    create: true
+    slug: "{{title}}"
+    filter: { field: category, value: Город }
+    fields:
+      - { name: title, label: Название, widget: string, hint: "Пишите точно как на карте — тогда статья привяжется к городу" }
+      - { name: category, label: Раздел, widget: hidden, default: Город }
+      - *summary
+      - { name: image, label: Изображение, widget: image, required: false }
+      - *stub
+      - *body
+
+  - name: kontinenty
+    label: Континенты
+    label_singular: Континент
+    folder: articles
+    create: true
+    slug: "{{title}}"
+    filter: { field: category, value: Континент }
+    fields:
+      - { name: title, label: Название, widget: string }
+      - { name: category, label: Раздел, widget: hidden, default: Континент }
+      - *summary
+      - *stub
+      - *body
+
+  - name: rasy
+    label: Расы и народы
+    label_singular: Народ
+    folder: articles
+    create: true
+    slug: "{{title}}"
+    filter: { field: category, value: Раса }
+    fields:
+      - { name: title, label: Название, widget: string, hint: "Можно заменить сокращение полным названием народа" }
+      - { name: code, label: "Обозначение", widget: string, hint: "Сокращение, которым отмечены жители (Кив, Мех…). Не меняйте у существующих народов" }
+      - { name: category, label: Раздел, widget: hidden, default: Раса }
+      - *summary
+      - { name: image, label: Изображение, widget: image, required: false }
+      - *stub
+      - *body
+
+  - name: organizatsii
+    label: Организации и религии
+    label_singular: Организация
+    folder: articles
+    create: true
+    slug: "{{title}}"
+    filter: { field: category, value: Организация }
+    fields:
+      - { name: title, label: Название, widget: string }
+      - { name: category, label: Раздел, widget: hidden, default: Организация }
+      - *summary
+      - { name: side, label: "Союз Великой войны", widget: select, required: false, options: [Конгломерат, Акрецис], hint: "Только для двух военных союзов" }
+      - { name: image, label: "Герб или символ", widget: image, required: false }
+      - *stub
+      - *body
+
+  - name: sobytiya
+    label: События
+    label_singular: Событие
+    folder: articles
+    create: true
+    slug: "{{title}}"
+    filter: { field: category, value: Событие }
+    fields:
+      - { name: title, label: Название, widget: string }
+      - { name: category, label: Раздел, widget: hidden, default: Событие }
+      - *summary
+      - { name: when, label: "Когда", widget: string, required: false }
+      - { name: image, label: Изображение, widget: image, required: false }
+      - *stub
+      - *body
+
+  - name: spravka
+    label: Справка о мире
+    label_singular: Статья
+    folder: articles
+    create: true
+    slug: "{{title}}"
+    filter: { field: category, value: Справка }
+    fields:
+      - { name: title, label: Название, widget: string }
+      - { name: category, label: Раздел, widget: hidden, default: Справка }
+      - *summary
+      - { name: pin, label: "Показывать на главной", widget: boolean, required: false }
+      - *stub
+      - *body
+
+  - name: server
+    label: Сервер и правила
+    label_singular: Статья
+    folder: articles
+    create: true
+    slug: "{{title}}"
+    filter: { field: category, value: Сервер }
+    fields:
+      - { name: title, label: Название, widget: string }
+      - { name: category, label: Раздел, widget: hidden, default: Сервер }
+      - *summary
+      - *stub
+      - *body
