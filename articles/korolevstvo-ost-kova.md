@@ -1,9 +1,15 @@
 ---
 title: Королевство Ост-Кова
 category: Государство
-color: "#bfb795"
-continent: Цакерей
 summary: Государство на континенте Цакерей.
+aliases: []
+continent: Цакерей
+capital: Уорш
+regime: ''
+war: ''
+theme: ''
+image: ''
+color: '#bfb795'
 stub: true
 ---
 
