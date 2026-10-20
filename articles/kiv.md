@@ -1,8 +1,9 @@
 ---
-title: Кив
+title: Кивин
+code: К
 category: Раса
-code: Кив
-summary: Полное название народа пока не записано.
+summary: ''
+image: ''
 stub: true
 ---
 
