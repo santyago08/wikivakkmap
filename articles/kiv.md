@@ -1,6 +1,6 @@
 ---
 title: Кивин
-code: К
+code: Ч
 category: Раса
 summary: ''
 image: ''
