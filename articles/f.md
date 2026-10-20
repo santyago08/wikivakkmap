@@ -1,8 +1,9 @@
 ---
-title: Ф
-category: Раса
+title: Фаццор
 code: Ф
-summary: Полное название народа пока не записано.
+category: Раса
+summary: ''
+image: ''
 stub: true
 ---
 
