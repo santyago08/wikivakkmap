@@ -1,9 +1,15 @@
 ---
-title: Антай
+title: Герцогство Антай
 category: Государство
-color: "#6a2024"
-continent: Афана
 summary: Государство на континенте Афана.
+aliases: []
+continent: Афана
+capital: ''
+regime: ''
+war: ''
+theme: ''
+image: ''
+color: '#6a2024'
 stub: true
 ---
 
