@@ -1,10 +1,16 @@
 ---
 title: Айзис / Аббас Юнус
 category: Житель
+summary: 'Житель: Лиресёрц.'
+states:
+  - Лиресёрц
+  - Мальха-Садд
 race: Мут
 sex: М
-states: [Лиресёрц]
-summary: "Житель: Лиресёрц."
+kind: ''
+skin: ''
+slim: false
+portrait: ''
 stub: true
 ---
 
