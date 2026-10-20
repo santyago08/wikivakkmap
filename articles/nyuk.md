@@ -1,9 +1,15 @@
 ---
-title: Ньюк
+title: Герцогство Ньюк
 category: Государство
-color: "#214268"
-continent: Афана
 summary: Государство на континенте Афана.
+aliases: []
+continent: Афана
+capital: ''
+regime: ''
+war: ''
+theme: ''
+image: ''
+color: '#214268'
 stub: true
 ---
 
