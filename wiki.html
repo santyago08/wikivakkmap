@@ -1,0 +1,383 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Вики Канъяло</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,400;0,500;0,700;1,400&family=Alegreya+SC:wght@500;700&family=Alegreya+Sans:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="site.css">
+<style>
+.wiki{display:grid;grid-template-columns:250px minmax(0,1fr);max-width:1320px;margin:0 auto;gap:0 40px;padding:28px var(--gutter) 64px}
+
+/* sidebar */
+.side-nav{position:sticky;top:80px;align-self:start;font:400 15.5px var(--ui)}
+.side-nav h2{font:500 13.5px var(--ui);color:var(--mist-2);margin:22px 0 6px}
+.side-nav h2:first-child{margin-top:0}
+.side-nav ul{list-style:none;margin:0;padding:0}
+.side-nav a{display:flex;justify-content:space-between;gap:10px;color:var(--mist);text-decoration:none;padding:4px 10px;border-radius:5px}
+.side-nav a:hover{color:var(--foam);background:rgba(236,231,214,.05)}
+.side-nav a[aria-current="true"]{color:var(--foam);background:rgba(221,187,104,.13)}
+.side-nav a small{color:var(--mist-2);font-size:13.5px}
+.side-nav .act{display:block;margin-top:14px;text-align:center;background:var(--foam);color:var(--abyss);border-radius:999px;padding:8px 12px;font-weight:500}
+.side-nav .act:hover{background:var(--brass);color:var(--abyss)}
+
+/* paper page */
+.page{border-radius:4px;padding:clamp(24px,4vw,52px) clamp(20px,4.5vw,60px) 44px;min-height:70vh;box-shadow:0 30px 60px -40px rgba(0,0,0,.9);position:relative}
+.crumbs{font:400 14.5px var(--ui);color:var(--ink-2);margin:0 0 6px}
+.crumbs a{color:var(--ink-2)}
+.page h1{font:700 clamp(34px,4.4vw,52px)/1.05 var(--serif);margin:0 0 6px;text-wrap:balance}
+.page .aka{font:italic 400 17px var(--serif);color:var(--ink-2);margin:0 0 18px}
+.stub{display:flex;gap:12px;align-items:baseline;background:var(--paper-2);border-left:4px solid var(--brass);padding:10px 16px;margin:16px 0 22px;font:400 15px var(--ui);color:var(--ink-2)}
+.stub a{color:var(--ink)}
+
+.body{font-size:18.5px;line-height:1.7}
+.body > :first-child{margin-top:0}
+.body h2{font:700 26px/1.2 var(--serif);margin:36px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--rule);display:flow-root}
+.body h3{font:700 20px var(--serif);margin:26px 0 8px}
+.body h4{font:700 17px var(--serif);margin:16px 0 4px}
+.body p{margin:0 0 14px;max-width:70ch}
+.body ul,.body ol{padding-left:1.3em;margin:0 0 14px;max-width:68ch}
+.body li{margin:3px 0}
+.body img{max-width:100%;height:auto;border-radius:3px}
+.body code{font:400 .86em ui-monospace,Consolas,monospace;background:var(--paper-2);padding:1px 5px;border-radius:3px}
+.body blockquote{margin:0 0 14px;padding:4px 18px;border-left:3px solid var(--rule);color:var(--ink-2)}
+.body table{border-collapse:collapse;margin:0 0 16px;font-size:16px}
+.body th,.body td{border-bottom:1px solid var(--rule);padding:6px 12px 6px 0;text-align:left}
+.body em{color:var(--ink-2)}
+a.wl{color:#2F5B62;text-decoration:none;border-bottom:1px solid rgba(47,91,98,.35)}
+a.wl:hover{border-bottom-color:currentColor}
+a.wl.city{color:#4F5D3A;border-bottom-style:dotted}
+a.wl.new{color:#A8483C;border-bottom:1px dashed rgba(168,72,60,.55)}
+.blank{color:var(--ink-2);font-style:italic}
+
+.cat-list{list-style:none!important;padding:0!important}
+.cat-list li{padding:6px 0;border-bottom:1px solid var(--rule)}
+.cat-list small{float:right;font:400 14px var(--ui);color:var(--ink-2)}
+.sides{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:0 0 18px}
+.side-box{background:var(--paper-2);border-top:4px solid var(--c);padding:10px 14px;border-radius:4px;font-size:16.5px}
+.side-box ul{list-style:none;padding:0;margin:6px 0 0}
+.city-groups{columns:2 300px;column-gap:36px;font-size:16.5px}
+.city-groups section{break-inside:avoid;margin:0 0 14px}
+.city-groups h4{margin:0 0 2px}
+.city-groups p{margin:0}
+.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
+.gallery figure{margin:0}
+.gallery img{width:100%;aspect-ratio:4/3;object-fit:cover}
+.gallery figcaption{font:400 14px var(--ui);color:var(--ink-2);margin-top:4px}
+
+/* infobox */
+.infobox{float:right;width:290px;margin:4px 0 22px 32px;background:var(--paper-2);border-radius:4px;padding:16px 18px;font-size:15.5px;border-top:6px solid color-mix(in srgb,var(--c,#8A8270) 70%,#8A8270)}
+.infobox .ib-head{display:flex;align-items:center;gap:14px;margin-bottom:10px}
+.infobox .seal{width:44px;height:44px;border-radius:50%;background:var(--c);filter:saturate(.7);box-shadow:inset 0 0 0 3px rgba(255,255,255,.35),inset 0 0 0 6px rgba(0,0,0,.12);flex:none}
+.infobox .ib-title{font:700 18px/1.2 var(--serif)}
+.infobox .ib-cat{font:400 13.5px var(--ui);color:var(--ink-2)}
+.infobox dl{display:grid;grid-template-columns:auto 1fr;gap:5px 14px;margin:0;padding:12px 0 0;border-top:1px solid var(--rule)}
+.infobox dt{font:400 13.5px/1.65 var(--ui);color:var(--ink-2)}
+.infobox dd{margin:0}
+.infobox .ib-act{display:block;margin-top:14px;text-align:center;background:var(--ink);color:var(--paper);text-decoration:none;border-radius:999px;padding:8px 12px;font:500 14.5px var(--ui)}
+.infobox .ib-act:hover{background:#3d3630}
+.infobox .ib-act + .ib-act{background:none;color:var(--ink);border:1px solid var(--rule);margin-top:8px}
+.big-face{--s:96px;width:96px;height:96px;border-radius:6px}
+
+.toc{display:inline-block;background:var(--paper-2);border-radius:4px;padding:12px 20px 12px 16px;margin:4px 0 18px;font:400 15.5px var(--ui)}
+.toc b{display:block;font-weight:500;margin-bottom:4px}
+.toc ol{margin:0;padding-left:1.2em}
+.toc a{color:var(--ink)}
+
+.auto h2{font:700 26px/1.2 var(--serif);margin:36px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--rule)}
+.people-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:6px;list-style:none;margin:0;padding:0}
+.people-grid a{display:flex;align-items:center;gap:12px;padding:6px 8px;border-radius:5px;text-decoration:none;color:var(--ink)}
+.people-grid a:hover{background:var(--paper-2)}
+.people-grid small{display:block;font:400 13.5px var(--ui);color:var(--ink-2)}
+.state-list{columns:2 240px;column-gap:30px;list-style:none;padding:0;margin:0;font-size:17px}
+.state-list li{display:flex;align-items:center;gap:10px;padding:3px 0;break-inside:avoid}
+.state-list .dot{width:9px;height:9px;border-radius:50%;background:var(--c);flex:none}
+
+.foot{clear:both;margin-top:44px;padding-top:16px;border-top:1px solid var(--rule);font:400 15px var(--ui);color:var(--ink-2);display:grid;gap:10px}
+.foot .links a{color:var(--ink)}
+.foot .acts{display:flex;flex-wrap:wrap;gap:8px 20px}
+.foot .acts a{color:var(--ink)}
+
+/* lists */
+.alpha h3{font:700 22px var(--sc);margin:26px 0 6px;border-bottom:1px solid var(--rule)}
+.alpha ul{columns:3 200px;column-gap:28px;list-style:none;padding:0;margin:0;font-size:17px}
+.alpha li{break-inside:avoid;padding:2px 0}
+.rows{list-style:none;padding:0;margin:0}
+.rows li{display:flex;gap:16px;align-items:baseline;padding:8px 0;border-bottom:1px solid var(--rule);font-size:17px}
+.rows li small{font:400 14px var(--ui);color:var(--ink-2);margin-left:auto;white-space:nowrap}
+
+/* main page */
+.home h1{font:700 clamp(40px,5.4vw,66px)/1 var(--sc);letter-spacing:.01em}
+.home .lead{font-size:20px;max-width:60ch;margin:12px 0 30px}
+.sections{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));border-top:1px solid var(--rule);margin:0 0 34px}
+.sections a{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:14px 16px 14px 0;border-bottom:1px solid var(--rule);text-decoration:none;color:var(--ink)}
+.sections a b{font:700 19px var(--serif)}
+.sections a span{font:500 22px var(--sc);color:var(--ink-2)}
+.sections a:hover b{text-decoration:underline;text-underline-offset:4px}
+.cols{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:40px}
+.cols h2{font:700 22px var(--serif);margin:0 0 10px}
+.featured{background:var(--paper-2);border-radius:4px;padding:18px 20px;border-left:5px solid color-mix(in srgb,var(--c,#8A8270) 70%,#8A8270)}
+.featured h3{font:700 24px var(--serif);margin:2px 0 6px}
+.featured p{margin:0 0 8px}
+
+/* link preview */
+.peek{position:fixed;z-index:950;left:0;top:0;width:300px;pointer-events:none;border-radius:6px;padding:12px 14px;box-shadow:0 20px 40px -18px rgba(0,0,0,.75);opacity:0;transition:opacity .12s;font-size:15px}
+.peek.show{opacity:1}
+.peek b{display:block;font:700 17px var(--serif)}
+.peek small{font:400 13px var(--ui);color:var(--ink-2)}
+.lightbox{position:fixed;inset:0;z-index:2000;background:rgba(6,14,18,.9);display:grid;place-items:center;padding:30px;cursor:zoom-out}
+.lightbox img{max-width:100%;max-height:100%}
+
+@media (max-width:980px){
+  .wiki{grid-template-columns:1fr}
+  .side-nav{position:static;display:flex;flex-wrap:wrap;gap:4px;margin-bottom:18px}
+  .side-nav h2,.side-nav .hide-m{display:none}
+  .side-nav ul{display:contents}
+  .side-nav a{background:rgba(236,231,214,.06);border-radius:999px;padding:5px 12px}
+  .side-nav a small{display:none}
+  .side-nav .act{margin:0}
+  .infobox{float:none;width:auto;margin:0 0 20px}
+  .cols{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <a class="mark" href="index.html"><b>Канъяло</b><span>атлас мира</span></a>
+  <nav class="nav" aria-label="Разделы">
+    <a href="index.html">Атлас</a>
+    <a href="wiki.html" aria-current="page">Вики</a>
+    <a href="residents.html">Жители</a>
+    <a href="wiki.html#a/velikaya-voyna">Великая война</a>
+  </nav>
+  <div class="bar-right">
+    <div class="find">
+      <input id="q" type="search" placeholder="Статья, город или житель" aria-label="Поиск по вики" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="found">
+      <ul class="found" id="found" role="listbox"></ul>
+    </div>
+  </div>
+</header>
+
+<div class="wiki">
+  <nav class="side-nav" id="side" aria-label="Вики"></nav>
+  <main class="page sheet" id="page" tabindex="-1"></main>
+</div>
+
+<footer>
+  <div><b>Канъяло</b> — ролевой мир Minecraft-сервера. Вики собрана <span id="built"></span>.</div>
+  <nav><a href="index.html">Атлас</a><a href="wiki.html#a/kak-redaktirovat-viki">Как редактировать</a><a href="wiki.html#a/kak-popast-na-server">Сервер</a></nav>
+</footer>
+
+<div class="peek sheet" id="peek" aria-hidden="true"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
+<script src="map/states.js"></script>
+<script src="wiki-data.js"></script>
+<script src="wiki.config.js"></script>
+<script src="wiki-core.js"></script>
+<script>
+const page = document.getElementById("page"), side = document.getElementById("side");
+const fmtDate = iso => new Date(iso).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" });
+document.getElementById("built").textContent = fmtDate(WIKI.built);
+const repo = repoInfo();
+const STUBS = ARTICLES.filter(a => a.stub);
+const count = c => c === "Город" ? CITIES.length : byCategory(c).length;
+const catURL = c => `wiki.html#k/${encodeURIComponent(c)}`;
+const catPlural = c => (CATEGORIES.find(x => x.name === c) || { plural: c }).plural;
+
+/* ---------- sidebar ---------- */
+function drawSide(cur) {
+  const link = (href, text, n, key) => `<li><a href="${href}" aria-current="${key === cur}">${text}${n != null ? `<small>${n}</small>` : ""}</a></li>`;
+  side.innerHTML = `<h2>Вики</h2><ul>${link("wiki.html", "Главная", null, "home")}${link("wiki.html#a/kanyalo", "О мире", null, "a/kanyalo")}${link("wiki.html#random", "Случайная статья", null, "random")}</ul>
+    <h2>Разделы</h2><ul>${CATEGORIES.filter(c => count(c.name)).map(c => link(catURL(c.name), c.plural, count(c.name), "k/" + c.name)).join("")}</ul>
+    <h2 class="hide-m">Служебное</h2><ul class="hide-m">${link("wiki.html#all", "Все статьи", ARTICLES.length, "all")}${link("wiki.html#changes", "Недавние правки", null, "changes")}${link("wiki.html#stubs", "Нужно написать", STUBS.length, "stubs")}${link("wiki.html#a/kak-redaktirovat-viki", "Как редактировать", null, "a/kak-redaktirovat-viki")}</ul>
+    <a class="act" href="wiki.html#new">Создать статью</a>`;
+}
+
+/* ---------- views ---------- */
+const stateFor = a => STATES.find(s => s.article === a);
+function infobox(a) {
+  const st = a.category === "Государство" && stateFor(a), r = a.category === "Житель" && RES_BY_ID[a.slug];
+  if (st) {
+    const L = st.lore, cities = CITIES.filter(c => c.stateObj === st);
+    return `<aside class="infobox" style="--c:${st.color}"><div class="ib-head"><span class="seal" style="--c:${st.color}"></span><div><div class="ib-title">${esc(a.title)}</div><div class="ib-cat">Государство</div></div></div><dl>
+      <dt>Континент</dt><dd>${linkFor(st.continent)}</dd>
+      ${L ? `<dt>Столица</dt><dd>${CITY_BY_NAME[L.capital.toLowerCase()] ? linkFor(L.capital) : esc(L.capital)}</dd><dt>Режим</dt><dd>${esc(L.regime)}</dd><dt>Великая война</dt><dd><span class="side" style="--c:${WAR_SIDES[L.war].color}">${["Конгломерат", "Акрецис"].includes(L.war) ? linkFor(L.war) : esc(L.war)}</span></dd><dt>Тема</dt><dd>${esc(L.theme)}</dd>` : ""}
+      <dt>Города</dt><dd>${cities.length}</dd>${st.residents.length ? `<dt>Жители</dt><dd>${st.residents.length} в записях</dd>` : ""}</dl>
+      <a class="ib-act" href="index.html#${st.id}">Показать на карте</a></aside>`;
+  }
+  if (r) {
+    return `<aside class="infobox" style="--c:${STATE_BY_ID[r.states[0]].color}"><div class="ib-head">${faceHTML(r, 64)}<div><div class="ib-title">${esc(a.title)}</div><div class="ib-cat">Житель</div></div></div><dl>
+      ${r.kind ? `<dt>Сущность</dt><dd>${esc(r.kind)}</dd>` : `${r.race ? `<dt>Народ</dt><dd>${linkFor(raceTitle(r.race))}</dd>` : ""}${r.sex ? `<dt>Пол</dt><dd>${sexWord(r)}</dd>` : ""}`}
+      <dt>Государство</dt><dd>${r.states.map(id => linkFor(STATE_BY_ID[id].name)).join(", ")}</dd></dl>
+      <a class="ib-act" href="residents.html#${r.id}">Облик в 3D</a></aside>`;
+  }
+  if (a.category === "Континент") {
+    const n = STATES.filter(s => s.continent === a.title).length;
+    return `<aside class="infobox"><div class="ib-head"><div><div class="ib-title">${esc(a.title)}</div><div class="ib-cat">Континент</div></div></div><dl><dt>Государства</dt><dd>${n}</dd><dt>Города</dt><dd>${CITIES.filter(c => c.stateObj && c.stateObj.continent === a.title).length}</dd></dl>
+      <a class="ib-act" href="index.html#continent/${encodeURIComponent(a.title)}">Показать на карте</a></aside>`;
+  }
+  if (a.category === "Раса") {
+    return `<aside class="infobox"><div class="ib-head"><div><div class="ib-title">${esc(a.title)}</div><div class="ib-cat">Народ</div></div></div><dl><dt>Обозначение</dt><dd>${esc(a.code || a.title)}</dd><dt>В записях</dt><dd>${RESIDENTS.filter(r => r.race === a.code).length}</dd></dl></aside>`;
+  }
+  if (a.side && WAR_SIDES[a.side]) {
+    return `<aside class="infobox" style="--c:${WAR_SIDES[a.side].color}"><div class="ib-head"><span class="seal" style="--c:${WAR_SIDES[a.side].color}"></span><div><div class="ib-title">${esc(a.title)}</div><div class="ib-cat">Союз Великой войны</div></div></div><dl><dt>Государства</dt><dd>${STATES.filter(s => s.lore && s.lore.war === a.side).length}</dd></dl></aside>`;
+  }
+  return "";
+}
+function autoSections(a) {
+  const st = a.category === "Государство" && stateFor(a);
+  let h = "";
+  if (st && st.residents.length) h += `<h2>Жители</h2><ul class="people-grid">${st.residents.map(r => `<li><a href="${articleURL(r.article)}">${faceHTML(r, 32)}<span>${esc(r.name)}<small>${esc(residentLine(r))}</small></span></a></li>`).join("")}</ul>`;
+  if (st) { const cs = CITIES.filter(c => c.stateObj === st); if (cs.length) h += `<h2>Города</h2><p class="body">${cs.map(c => findArticle(c.name) ? linkFor(c.name) : `<a class="wl city" href="${cityURL(c)}">${c.major ? `<b>${esc(c.name)}</b>` : esc(c.name)}</a>`).join(", ")}</p>`; }
+  if (a.category === "Континент") {
+    const ss = STATES.filter(s => s.continent === a.title).sort((x, y) => x.name.localeCompare(y.name, "ru"));
+    if (ss.length) h += `<h2>Государства</h2><ul class="state-list">${ss.map(s => `<li style="--c:${s.color}"><span class="dot"></span>${linkFor(s.name)}</li>`).join("")}</ul>`;
+  }
+  if (a.category === "Раса") {
+    const rs = RESIDENTS.filter(r => r.race === a.code);
+    if (rs.length) h += `<h2>Жители этого народа</h2><ul class="people-grid">${rs.map(r => `<li><a href="${articleURL(r.article)}">${faceHTML(r, 32)}<span>${esc(r.name)}<small>${esc(STATE_BY_ID[r.states[0]].name)}</small></span></a></li>`).join("")}</ul>`;
+  }
+  return h ? `<div class="auto">${h}</div>` : "";
+}
+function toc(html) {
+  const hs = [...html.matchAll(/<h2>(.*?)<\/h2>/g)].map(m => m[1]);
+  return hs.length >= 3 ? `<nav class="toc" aria-label="Содержание"><b>Содержание</b><ol>${hs.map((h, i) => `<li><a href="#" data-sec="${i}">${h.replace(/<[^>]+>/g, "")}</a></li>`).join("")}</ol></nav>` : "";
+}
+function articleView(a) {
+  const body = renderMarkdown(a.body), bl = (BACKLINKS[a.slug] || []).sort((x, y) => x.title.localeCompare(y.title, "ru"));
+  const ed = editURL(a), hi = historyURL(a);
+  document.title = `${a.title} — Вики Канъяло`;
+  return `<p class="crumbs"><a href="wiki.html">Вики</a> › <a href="${catURL(a.category)}">${esc(catPlural(a.category))}</a></p>
+    <h1>${esc(a.title)}</h1>${asList(a.aliases).length ? `<p class="aka">Также: ${asList(a.aliases).map(esc).join(", ")}</p>` : ""}
+    ${infobox(a)}
+    ${a.stub ? `<div class="stub">Это заготовка статьи.${ed ? ` <a href="${ed}" target="_blank" rel="noopener">Помогите её дописать</a>.` : ""}</div>` : ""}
+    ${toc(body)}<div class="body">${body}</div>${autoSections(a)}
+    <div class="foot">
+      ${bl.length ? `<div class="links"><b>Ссылки сюда:</b> ${bl.map(x => `<a href="${articleURL(x)}">${esc(x.title)}</a>`).join(", ")}</div>` : ""}
+      <div>Раздел: <a href="${catURL(a.category)}" style="color:inherit">${esc(catPlural(a.category))}</a>. Изменено ${fmtDate(a.updated)}${a.author ? `, ${esc(a.author)}` : ""}.</div>
+      <div class="acts">${ed ? `<a href="${ed}" target="_blank" rel="noopener">Редактировать</a><a href="${hi}" target="_blank" rel="noopener">История правок</a>` : `<span>Редактирование заработает, когда вики будет опубликована на GitHub. <a href="wiki.html#a/kak-redaktirovat-viki">Подробнее</a></span>`}</div>
+    </div>`;
+}
+function categoryView(c) {
+  document.title = `${catPlural(c)} — Вики Канъяло`;
+  if (c === "Город") return `<p class="crumbs"><a href="wiki.html">Вики</a></p><h1>Города</h1><div class="body">${blockHTML("города")}</div>`;
+  const list = byCategory(c);
+  let inner;
+  if (c === "Государство") {
+    const g = {}; list.forEach(a => (g[a.continent || "—"] ||= []).push(a));
+    inner = Object.keys(g).sort((x, y) => g[y].length - g[x].length).map(k => `<h3>${linkFor(k)}</h3><ul>${g[k].map(a => `<li>${linkFor(a.title)}</li>`).join("")}</ul>`).join("");
+  } else if (c === "Житель") {
+    const g = {}; RESIDENTS.forEach(r => (g[STATE_BY_ID[r.states[0]].name] ||= []).push(r));
+    inner = Object.keys(g).sort((x, y) => x.localeCompare(y, "ru")).map(k => `<h3>${linkFor(k)}</h3><ul>${g[k].map(r => `<li>${linkFor(r.name)}</li>`).join("")}</ul>`).join("");
+  } else inner = `<ul>${list.map(a => `<li>${linkFor(a.title)}</li>`).join("")}</ul>`;
+  return `<p class="crumbs"><a href="wiki.html">Вики</a></p><h1>${esc(catPlural(c))}</h1><p class="aka">${list.length} ${plural(list.length, ["статья", "статьи", "статей"])}</p><div class="alpha">${inner}</div>`;
+}
+function allView() {
+  document.title = "Все статьи — Вики Канъяло";
+  const g = {}; [...ARTICLES].sort((x, y) => x.title.localeCompare(y.title, "ru")).forEach(a => (g[a.title[0].toUpperCase()] ||= []).push(a));
+  return `<p class="crumbs"><a href="wiki.html">Вики</a></p><h1>Все статьи</h1><p class="aka">${ARTICLES.length} ${plural(ARTICLES.length, ["статья", "статьи", "статей"])} от А до Я</p><div class="alpha">${Object.keys(g).map(k => `<h3>${k}</h3><ul>${g[k].map(a => `<li>${linkFor(a.title)}</li>`).join("")}</ul>`).join("")}</div>`;
+}
+function changesView() {
+  document.title = "Недавние правки — Вики Канъяло";
+  const list = [...ARTICLES].sort((x, y) => y.updated.localeCompare(x.updated)).slice(0, 60);
+  return `<p class="crumbs"><a href="wiki.html">Вики</a></p><h1>Недавние правки</h1><p class="aka">Последние изменённые статьи</p><ul class="rows">${list.map(a => `<li>${linkFor(a.title)}<small>${fmtDate(a.updated)}${a.author ? ", " + esc(a.author) : ""}</small></li>`).join("")}</ul>`;
+}
+function stubsView() {
+  document.title = "Нужно написать — Вики Канъяло";
+  const g = {}; STUBS.forEach(a => (g[a.category] ||= []).push(a));
+  return `<p class="crumbs"><a href="wiki.html">Вики</a></p><h1>Нужно написать</h1><p class="aka">${STUBS.length} ${plural(STUBS.length, ["заготовка ждёт", "заготовки ждут", "заготовок ждут"])} автора. Выберите любую и допишите.</p><div class="alpha">${Object.keys(g).map(k => `<h3>${esc(catPlural(k))}</h3><ul>${g[k].sort((x, y) => x.title.localeCompare(y.title, "ru")).map(a => `<li>${linkFor(a.title)}</li>`).join("")}</ul>`).join("")}</div>`;
+}
+function cityView(name) {
+  const c = CITY_BY_NAME[name.toLowerCase()]; if (!c) return notFound(name);
+  const a = findArticle(c.name); if (a) { location.replace(articleURL(a)); return ""; }
+  document.title = `${c.name} — Вики Канъяло`;
+  const nu = newArticleURL(c.name, "Город"), st = c.stateObj;
+  const capOf = STATES.find(s => s.lore && s.lore.capital === c.name);
+  return `<p class="crumbs"><a href="wiki.html">Вики</a> › <a href="${catURL("Город")}">Города</a></p><h1>${esc(c.name)}</h1>
+    <aside class="infobox" style="--c:${st ? st.color : "#8A8270"}"><div class="ib-head"><div><div class="ib-title">${esc(c.name)}</div><div class="ib-cat">${capOf ? "Столица" : c.major ? "Крупный город" : "Город"}</div></div></div><dl>
+      <dt>Государство</dt><dd>${st ? linkFor(st.name) : "—"}</dd>${st ? `<dt>Континент</dt><dd>${linkFor(st.continent)}</dd>` : ""}</dl>
+      <a class="ib-act" href="index.html#city/${encodeURIComponent(c.name)}">Показать на карте</a></aside>
+    <div class="body"><p><b>${esc(c.name)}</b> — ${capOf ? `столица государства ${linkFor(capOf.name)}` : `${c.major ? "крупный город" : "город"}${st ? ` в государстве ${linkFor(st.name)}` : ""}`}.</p>
+    <p class="blank">Статьи об этом городе ещё нет.${nu ? ` <a href="${nu}" target="_blank" rel="noopener">Написать её</a>.` : ""}</p></div>`;
+}
+function newView() {
+  document.title = "Создать статью — Вики Канъяло";
+  return `<p class="crumbs"><a href="wiki.html">Вики</a></p><h1>Создать статью</h1>
+  ${repo ? `<div class="body"><p>Введите название и выберите раздел. Откроется редактор GitHub, где начало статьи уже будет заполнено.</p></div>
+    <form id="newForm" class="body" style="display:grid;gap:12px;max-width:440px;font:400 16px var(--ui)">
+      <label>Название<br><input id="nTitle" required style="width:100%;padding:8px 10px;font:inherit;border:1px solid var(--rule);border-radius:4px;background:#fffdf6"></label>
+      <label>Раздел<br><select id="nCat" style="width:100%;padding:8px 10px;font:inherit;border:1px solid var(--rule);border-radius:4px;background:#fffdf6">${CATEGORIES.map(c => `<option>${c.name}</option>`).join("")}</select></label>
+      <button style="justify-self:start;background:var(--ink);color:var(--paper);border:0;border-radius:999px;padding:9px 18px;font:500 15px var(--ui);cursor:pointer">Открыть редактор</button>
+      <p id="nWarn" class="blank"></p></form>`
+  : `<div class="body"><p>Создавать и править статьи можно, когда вики опубликована на GitHub: каждая статья — это файл в папке <code>articles</code>. Как это устроено, описано в статье ${linkFor("Как редактировать вики")}.</p><p>Если вы работаете с файлами на компьютере, создайте новый файл <code>.md</code> в папке <code>articles</code> и запустите <code>обновить-вики.bat</code>.</p></div>`}`;
+}
+function homeView() {
+  document.title = "Вики Канъяло";
+  const lore = STATES.filter(s => s.lore), day = Math.floor(Date.now() / 864e5);
+  const pick = lore[day % lore.length], fa = pick.article;
+  const recent = [...ARTICLES].sort((x, y) => y.updated.localeCompare(x.updated)).slice(0, 8);
+  const stubs = STUBS.filter(a => a.category !== "Государство" || stateFor(a)?.lore).slice(0, 8);
+  return `<div class="home"><h1>Вики Канъяло</h1>
+    <p class="lead">Летопись мира ролевого сервера: ${STATES.length} государств, ${CITIES.length} городов, ${RESIDENTS.length} жителей и ${ARTICLES.length} статей. Любой участник может дописать её.</p>
+    <nav class="sections" aria-label="Разделы">${CATEGORIES.filter(c => count(c.name)).map(c => `<a href="${catURL(c.name)}"><b>${c.plural}</b><span>${count(c.name)}</span></a>`).join("")}</nav>
+    <div class="cols">
+      <section><h2>Статья дня</h2><div class="featured" style="--c:${pick.color}"><p class="kicker">${esc(pick.continent)}</p><h3>${linkFor(fa.title)}</h3><p>${esc(fa.summary || "")}</p>
+        <p>${pick.residents.slice(0, 6).map(r => faceHTML(r, 28)).join(" ")}</p></div>
+        <h2 style="margin-top:30px">Начните отсюда</h2><ul class="rows">${["Канъяло", "Великая война", "Расы и народы", "Хроника", "Города", "Организации и религии", "Галерея"].map(t => findArticle(t) ? `<li>${linkFor(t)}<small>${esc(findArticle(t).summary || "")}</small></li>` : "").join("")}</ul></section>
+      <section><h2>Недавние правки</h2><ul class="rows">${recent.map(a => `<li>${linkFor(a.title)}<small>${fmtDate(a.updated)}</small></li>`).join("")}</ul>
+        <h2 style="margin-top:30px">Нужно написать</h2><ul class="rows">${stubs.map(a => `<li>${linkFor(a.title)}<small>${esc(a.category)}</small></li>`).join("")}<li><a class="wl" href="wiki.html#stubs">Все заготовки (${STUBS.length})</a></li></ul>
+        <h2 style="margin-top:30px">Для игроков</h2><ul class="rows">${byCategory("Сервер").map(a => `<li>${linkFor(a.title)}</li>`).join("")}</ul></section>
+    </div></div>`;
+}
+function notFound(name) {
+  const nu = newArticleURL(name);
+  return `<h1>${esc(name)}</h1><div class="body"><p>Такой статьи пока нет.${nu ? ` <a href="${nu}" target="_blank" rel="noopener">Создать её</a>.` : ""}</p><p><a class="wl" href="wiki.html">На главную вики</a></p></div>`;
+}
+
+/* ---------- router ---------- */
+function route() {
+  const h = decodeURIComponent(location.hash.slice(1));
+  let html, cur = "home";
+  if (h === "random") { const a = ARTICLES[Math.floor(Math.random() * ARTICLES.length)]; location.replace(articleURL(a)); return; }
+  if (h.startsWith("a/")) { const a = ART[h.slice(2)] || findArticle(h.slice(2)); html = a ? articleView(a) : notFound(h.slice(2)); cur = h; }
+  else if (h.startsWith("k/")) { html = categoryView(h.slice(2)); cur = h; }
+  else if (h.startsWith("city/")) { html = cityView(h.slice(5)); cur = "k/Город"; }
+  else if (h === "all" || h === "changes" || h === "stubs" || h === "new") { html = { all: allView, changes: changesView, stubs: stubsView, new: newView }[h](); cur = h; }
+  else html = homeView();
+  if (!html) return;
+  page.innerHTML = html; drawSide(cur); paintFaces(page);
+  page.querySelectorAll(".body h2").forEach((el, i) => el.id = "sec-" + i);
+  const f = document.getElementById("newForm");
+  if (f) f.onsubmit = e => { e.preventDefault(); const t = document.getElementById("nTitle").value.trim(); if (!t) return;
+    if (findArticle(t)) { document.getElementById("nWarn").innerHTML = `Статья «${esc(t)}» уже есть: ${linkFor(t)}`; return; }
+    window.open(newArticleURL(t, document.getElementById("nCat").value), "_blank", "noopener"); };
+  scrollTo({ top: 0, behavior: "auto" });
+}
+addEventListener("hashchange", route);
+page.addEventListener("click", e => {
+  const s = e.target.closest("[data-sec]"); if (s) { e.preventDefault(); document.getElementById("sec-" + s.dataset.sec)?.scrollIntoView({ behavior: "smooth" }); return; }
+  const lb = e.target.closest("[data-lightbox]"); if (lb) { e.preventDefault(); const d = document.createElement("div"); d.className = "lightbox"; d.innerHTML = `<img src="${lb.getAttribute("href")}" alt="">`; d.onclick = () => d.remove(); document.body.append(d); }
+});
+
+/* ---------- link previews ---------- */
+const peek = document.getElementById("peek");
+page.addEventListener("mouseover", e => {
+  const l = e.target.closest("a[data-tip]"); if (!l || matchMedia("(hover: none)").matches) return;
+  const a = ART[l.dataset.tip]; if (!a) return;
+  peek.innerHTML = `<small>${esc(a.category)}</small><b>${esc(a.title)}</b>${a.summary ? esc(a.summary) : '<span class="blank">Без описания</span>'}`;
+  const r = l.getBoundingClientRect(); let x = r.left, y = r.bottom + 8;
+  if (x + 300 > innerWidth - 10) x = innerWidth - 310; if (y + 120 > innerHeight) y = r.top - 110;
+  peek.style.transform = `translate(${Math.max(8, x)}px,${y}px)`; peek.classList.add("show");
+});
+page.addEventListener("mouseout", e => { if (e.target.closest("a[data-tip]")) peek.classList.remove("show"); });
+
+initSearch({ onState: id => location.href = articleURL(STATE_BY_ID[id].article), onResident: id => location.href = articleURL(RES_BY_ID[id].article) });
+route();
+</script>
+</body>
+</html>

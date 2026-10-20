@@ -1,0 +1,476 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Атлас Канъяло</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,400;0,500;0,700;1,400&family=Alegreya+SC:wght@500;700&family=Alegreya+Sans:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="site.css">
+<style>
+/* ---------- atlas ---------- */
+.atlas{position:relative;height:calc(100svh - 57px);min-height:520px;background:var(--sea)}
+#map{position:absolute;inset:0;z-index:1;background:var(--sea);touch-action:none}
+#map .openseadragon-canvas{outline:none}
+#ov{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2}
+/* depth: a soft vignette around the edge of the sheet */
+.atlas::after{content:"";position:absolute;inset:0;z-index:3;pointer-events:none;box-shadow:inset 0 0 180px 40px rgba(6,16,20,.7)}
+.zoomer{position:absolute;z-index:600;right:var(--gutter);bottom:22px;display:grid;border-radius:8px;overflow:hidden;box-shadow:0 12px 30px -12px rgba(0,0,0,.75);transition:right .45s cubic-bezier(.2,.8,.2,1)}
+.zoomer button{width:42px;height:40px;border:0;background:var(--paper);color:var(--ink);font:500 21px/1 var(--ui);cursor:pointer}
+.zoomer button + button{border-top:1px solid var(--rule)}
+.zoomer button:hover{background:var(--paper-2)}
+body.reading .zoomer{right:calc(min(440px,100vw) + 20px)}
+.title{position:absolute;z-index:500;left:var(--gutter);top:26px;pointer-events:none;max-width:min(520px,80vw)}
+.atlas::before{content:"";position:absolute;z-index:4;left:0;top:0;width:min(760px,100%);height:380px;pointer-events:none;background:radial-gradient(ellipse 70% 75% at 18% 22%,rgba(13,31,37,.92) 0%,rgba(13,31,37,.7) 45%,rgba(13,31,37,0) 100%)}
+.title h1{font:700 clamp(48px,7vw,104px)/.9 var(--sc);letter-spacing:.02em;margin:0;color:var(--foam);text-shadow:0 2px 24px rgba(8,20,24,.8)}
+.title p{font:400 clamp(16px,1.4vw,19px)/1.45 var(--serif);color:var(--mist);margin:12px 0 0;text-shadow:0 1px 10px rgba(8,20,24,.9);max-width:40ch}
+.title p em{color:var(--foam);font-style:normal}
+
+.lands{position:absolute;z-index:500;left:var(--gutter);bottom:22px;display:flex;flex-wrap:wrap;gap:6px;max-width:calc(100% - 140px)}
+.lands button{background:rgba(13,31,37,.78);border:1px solid rgba(236,231,214,.16);color:var(--foam);font:500 15px var(--ui);padding:7px 14px;border-radius:999px;cursor:pointer;backdrop-filter:blur(6px)}
+.lands button:hover{background:var(--foam);color:var(--abyss)}
+
+.tip{position:fixed;left:0;top:0;z-index:900;pointer-events:none;width:300px;border-radius:6px;padding:14px 16px 12px;box-shadow:0 20px 40px -18px rgba(0,0,0,.75);opacity:0;transition:opacity .12s;border-top:5px solid color-mix(in srgb,var(--c) 70%,#8A8270)}
+.tip.show{opacity:1}
+.tip .kicker{font-size:13.5px}
+.tip h3{font:700 20px/1.15 var(--serif);margin:3px 0 6px}
+.tip dl{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;margin:8px 0 0;font-size:15px}
+.tip dt{font:400 13.5px/1.6 var(--ui);color:var(--ink-2)}
+.tip dd{margin:0}
+.tip .hint{font:400 13.5px var(--ui);color:var(--ink-2);margin:10px 0 0;padding-top:8px;border-top:1px solid var(--rule)}
+
+.modes{position:absolute;z-index:600;top:20px;right:var(--gutter);display:flex;gap:3px;padding:4px;border-radius:999px;background:rgba(13,31,37,.82);backdrop-filter:blur(6px);border:1px solid rgba(236,231,214,.14)}
+.modes button{background:none;border:0;color:var(--mist);font:500 15px var(--ui);padding:7px 15px;border-radius:999px;cursor:pointer}
+.modes button:hover{color:var(--foam)}
+.modes button[aria-pressed="true"]{background:var(--foam);color:var(--abyss)}
+.war-legend{position:absolute;z-index:600;bottom:74px;left:var(--gutter);width:300px;border-radius:8px;padding:14px 16px;box-shadow:0 20px 40px -18px rgba(0,0,0,.75)}
+.war-legend p{margin:0 0 8px;font:500 14px var(--ui);color:var(--ink-2)}
+.war-legend .wl-note{margin:10px 0 0;font-size:13px}
+.wl-side{display:grid;grid-template-columns:14px 1fr;gap:2px 10px;padding:7px 0;border-top:1px solid var(--rule)}
+.wl-dot{width:12px;height:12px;border-radius:50%;background:var(--c);margin-top:5px}
+.wl-side b{font:700 17px var(--serif)}
+.wl-side span:last-child{grid-column:2;display:flex;flex-direction:column;align-items:flex-start}
+.wl-side button{background:none;border:0;padding:1px 0;font:400 15px var(--serif);color:var(--ink);cursor:pointer;text-align:left}
+.wl-side button:hover{text-decoration:underline;text-underline-offset:3px}
+.seal-mk{background:none;border:0}
+.mk{display:flex;align-items:center;transform:translate(-50%,-50%);background:var(--paper);border:0;border-radius:999px;padding:3px 10px 3px 4px;cursor:pointer;box-shadow:0 0 0 2px color-mix(in srgb,var(--c) 70%,#8A8270),0 8px 18px -6px rgba(0,0,0,.75);transition:transform .15s}
+.mk:hover{transform:translate(-50%,-50%) scale(1.12)}
+.mk-faces{display:flex}
+.mk-faces .face{border:2px solid var(--paper);border-radius:5px;margin-right:-7px;box-sizing:content-box}
+.mk-n{font:500 13.5px var(--ui);color:var(--ink);margin-left:12px}
+body.war-mode .seal-mk{visibility:hidden!important}
+
+/* article panel */
+.article{position:fixed;z-index:800;top:57px;right:0;bottom:0;width:min(440px,100vw);overflow-y:auto;overscroll-behavior:contain;padding:26px 32px 48px;border-left:6px solid color-mix(in srgb,var(--c) 70%,#8A8270);transform:translateX(105%);visibility:hidden;transition:transform .45s cubic-bezier(.2,.8,.2,1),visibility 0s .45s;box-shadow:-30px 0 60px -30px rgba(0,0,0,.8)}
+.article.open{transform:none;visibility:visible;transition:transform .45s cubic-bezier(.2,.8,.2,1)}
+.a-top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.close{background:var(--paper-2);border:0;border-radius:999px;padding:7px 16px;font:500 15px var(--ui);cursor:pointer;color:var(--ink)}
+.close:hover{background:var(--paper-3)}
+.seal{width:46px;height:46px;border-radius:50%;background:var(--c);filter:saturate(.7);box-shadow:inset 0 0 0 3px rgba(255,255,255,.35),inset 0 0 0 6px rgba(0,0,0,.12)}
+.article h3{font:700 19px var(--serif);margin:28px 0 10px}
+.people{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.people a{display:flex;align-items:center;gap:12px;text-decoration:none;padding:6px 8px;border-radius:5px}
+.people a:hover{background:var(--paper-2)}
+.people span small{display:block;font:400 13.5px var(--ui);color:var(--ink-2)}
+.article .blank{margin:18px 0 0}
+.a-actions{margin-top:22px;font:400 15px var(--ui);display:flex;gap:18px}
+.a-sum{margin:22px 0 0;font-size:16.5px}
+.read{display:block;margin-top:16px;text-align:center;background:var(--ink);color:var(--paper);text-decoration:none;border-radius:999px;padding:10px 14px;font:500 15.5px var(--ui)}
+.read:hover{background:#3d3630}
+.city-pin{pointer-events:none;transform:translate(-50%,-100%);display:flex;flex-direction:column;align-items:center}
+.city-pin span{background:var(--paper);color:var(--ink);font:500 15px var(--serif);padding:4px 12px;border-radius:999px;box-shadow:0 8px 18px -6px rgba(0,0,0,.75);white-space:nowrap}
+.city-pin i{width:14px;height:14px;margin-top:4px;border-radius:50%;background:var(--brass);box-shadow:0 0 0 0 rgba(221,187,104,.7);animation:ping 1.6s ease-out infinite}
+@keyframes ping{to{box-shadow:0 0 0 18px rgba(221,187,104,0)}}
+.a-actions a{color:var(--ink)}
+
+/* ---------- below the map ---------- */
+.below{max-width:1400px;margin:0 auto;padding:clamp(56px,7vw,96px) var(--gutter)}
+.below h2{font:700 clamp(30px,3.4vw,46px)/1.05 var(--sc);letter-spacing:.01em;margin:0 0 10px}
+.below .lead{color:var(--mist);margin:0 0 34px;max-width:60ch}
+.conts{columns:4 260px;column-gap:40px}
+.cont{break-inside:avoid;margin:0 0 30px}
+.cont h3{font:500 22px var(--sc);margin:0 0 6px;display:flex;align-items:baseline;gap:10px;border-bottom:1px solid rgba(236,231,214,.14);padding-bottom:6px}
+.cont h3 button{background:none;border:0;padding:0;cursor:pointer;font:inherit;color:var(--foam)}
+.cont h3 button:hover{color:var(--brass)}
+.cont h3 small{font:400 14px var(--ui);color:var(--mist-2)}
+.cont ul{list-style:none;margin:0;padding:0}
+.cont li button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:0;padding:4px 0;cursor:pointer;font:400 17px/1.35 var(--serif);color:var(--foam)}
+.cont li button:hover{color:var(--brass)}
+.cont li .dot{width:9px;height:9px;border-radius:50%;background:var(--c);flex:none}
+.cont li .rec{font:400 13px var(--ui);color:var(--brass);margin-left:auto;flex:none}
+
+.war{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px}
+.side-card{border-radius:8px;padding:22px 24px;background:var(--sea-2);border-top:4px solid var(--c)}
+.side-card h3{font:700 26px var(--sc);margin:0}
+.side-card p{font:400 15px var(--ui);color:var(--mist);margin:2px 0 14px}
+.side-card ul{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+.side-card li button{background:none;border:0;padding:3px 0;cursor:pointer;font:400 17.5px var(--serif);color:var(--foam);text-align:left}
+.side-card li button:hover{color:var(--brass)}
+.below + .below{padding-top:0}
+
+@media (max-width:720px){
+  .atlas{height:500px}
+  .modes{top:auto;bottom:16px;right:16px}
+  .war-legend{top:auto;bottom:66px;right:16px;left:16px;width:auto;max-height:55%;overflow:auto}
+  .title{top:16px}
+  .lands{display:none}
+  .zoomer{bottom:70px}
+  .atlas::after{box-shadow:inset 0 0 80px 10px rgba(6,16,20,.6)}
+  .article{top:auto;height:70svh;width:100%;border-left:0;border-top:6px solid var(--c);border-radius:12px 12px 0 0;transform:translateY(105%);padding:20px 20px 40px}
+  .tip{display:none}
+}
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <a class="mark" href="index.html"><b>Канъяло</b><span>атлас мира</span></a>
+  <nav class="nav" aria-label="Разделы">
+    <a href="index.html" aria-current="page">Атлас</a>
+    <a href="wiki.html">Вики</a>
+    <a href="residents.html">Жители</a>
+    <a href="#war">Великая война</a>
+  </nav>
+  <div class="bar-right">
+    <div class="find">
+      <input id="q" type="search" placeholder="Государство, город или житель" aria-label="Поиск по атласу" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="found">
+      <ul class="found" id="found" role="listbox"></ul>
+    </div>
+  </div>
+</header>
+
+<section class="atlas" aria-label="Карта мира Канъяло">
+  <div id="map"></div>
+  <canvas id="ov" aria-hidden="true"></canvas>
+  <div class="title">
+    <h1>Канъяло</h1>
+    <p id="lede"></p>
+  </div>
+  <div class="lands" id="lands" aria-label="Перейти к континенту"></div>
+  <div class="modes" id="modes" role="group" aria-label="Слой карты">
+    <button type="button" data-mode="pol" aria-pressed="true">Государства</button>
+    <button type="button" data-mode="war" aria-pressed="false">Великая война</button>
+  </div>
+  <div class="war-legend sheet" id="warLegend" hidden></div>
+  <div class="zoomer" role="group" aria-label="Масштаб">
+    <button type="button" id="zin" aria-label="Приблизить">+</button>
+    <button type="button" id="zout" aria-label="Отдалить">−</button>
+    <button type="button" id="zhome" aria-label="Показать весь мир">⌂</button>
+  </div>
+</section>
+
+<main>
+  <section class="below" id="states">
+    <h2>Государства</h2>
+    <p class="lead">Все государства с карты, по континентам. Те, о ком уже есть запись, отмечены.</p>
+    <div class="conts" id="conts"></div>
+  </section>
+  <section class="below" id="war">
+    <h2>Великая война</h2>
+    <p class="lead">Стороны известны для государств, о которых есть записи в атласе.</p>
+    <div class="war" id="warGrid"></div>
+  </section>
+</main>
+
+<footer>
+  <div><b>Канъяло</b> — ролевой мир Minecraft-сервера. Карта мира, редакция V4.</div>
+  <nav><a href="residents.html">Жители</a><a href="#states">Государства</a><a href="#war">Великая война</a></nav>
+</footer>
+
+<div class="tip sheet" id="tip" aria-hidden="true"></div>
+<aside class="article sheet" id="article" aria-label="Статья о государстве" aria-hidden="true"></aside>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/openseadragon/5.0.1/openseadragon.min.js"></script>
+<script src="map/states.js"></script>
+<script src="wiki-data.js"></script>
+<script src="wiki.config.js"></script>
+<script src="wiki-core.js"></script>
+<script>
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const W = GEO.width, H = GEO.height, OSD = OpenSeadragon;
+
+/* ============================================================
+   MAP ENGINE — OpenSeadragon: continuous zoom, inertia, tiles cross-fade.
+   Tiles: map/tiles/{z}/{x}/{y}.webp, z=6 is full resolution (16000×8000).
+   ============================================================ */
+const viewer = OSD({
+  element: document.getElementById("map"),
+  drawer: "canvas",                       // works from a local file and on any host
+  showNavigationControl: false,
+  tileSources: { width: W, height: H, tileSize: 256, tileOverlap: 0, minLevel: 8, maxLevel: 14,
+    getTileUrl: (level, x, y) => `map/tiles/${level - 8}/${x}/${y}.webp` },
+  homeFillsViewer: true, visibilityRatio: 1, constrainDuringPan: true, minZoomImageRatio: 1,
+  maxZoomPixelRatio: 1.5, defaultZoomLevel: 0, minPixelRatio: .9, smoothTileEdgesMinZoom: Infinity,
+  animationTime: reduce ? 0 : 1.0, springStiffness: 7.5, blendTime: .25, immediateRender: false,
+  zoomPerScroll: 1.35, zoomPerClick: 1.8,
+  gestureSettingsMouse: { clickToZoom: false, dblClickToZoom: true, flickEnabled: true, flickMinSpeed: 60, flickMomentum: .35 },
+  gestureSettingsTouch: { pinchToZoom: true, flickEnabled: true, clickToZoom: false, dblClickToZoom: true },
+  preserveViewport: true,
+});
+const vp = () => viewer.viewport;
+function fixMinZoom() { vp().minZoomLevel = vp().getHomeZoom(); vp().applyConstraints(true); }
+viewer.addHandler("open", () => {
+  // highlights sit between the map and the seals
+  const host = viewer.overlaysContainer || viewer.canvas.lastChild; host.parentNode.insertBefore(ov, host);
+  fixMinZoom(); addSeals();
+  // one quiet moment on arrival: the atlas settles from slightly closer
+  if (!reduce) { vp().zoomTo(vp().getHomeZoom() * 1.18, null, true); setTimeout(() => vp().goHome(), 120); }
+  else vp().goHome(true);
+  const start = decodeURIComponent(location.hash.slice(1));
+  if (STATE_BY_ID[start]) setTimeout(() => openState(start), 500);
+  else if (start.startsWith("city/")) { const c = CITY_BY_NAME[start.slice(5).toLowerCase()]; if (c) setTimeout(() => focusCity(c), 500); }
+  else if (start.startsWith("continent/")) setTimeout(() => flyContinent(start.slice(10)), 500);
+});
+viewer.addHandler("resize", () => setTimeout(fixMinZoom, 0));
+
+// Fully zoomed out + scrolling down = scroll the page instead of fighting the map
+viewer.addHandler("canvas-scroll", e => {
+  if (e.scroll < 0 && vp().getZoom() <= vp().getMinZoom() * 1.002) { e.preventDefaultAction = true; e.preventDefault = false; }
+});
+
+document.getElementById("zin").onclick = () => { vp().zoomBy(1.7); vp().applyConstraints(); };
+document.getElementById("zout").onclick = () => { vp().zoomBy(1 / 1.7); vp().applyConstraints(); };
+document.getElementById("zhome").onclick = () => vp().goHome();
+
+/* ---------- overlay: highlights drawn on our own canvas, in sync with the map ---------- */
+const ov = document.getElementById("ov"), g = ov.getContext("2d");
+const hitCtx = document.createElement("canvas").getContext("2d");
+const PATHS = {};
+STATES.forEach(s => { const p = new Path2D(); s.polys.forEach(poly => poly.forEach(r => { p.moveTo(r[0][0], r[0][1]); for (let i = 1; i < r.length; i++) p.lineTo(r[i][0], r[i][1]); p.closePath(); })); PATHS[s.id] = p; });
+const LORE_STATES = STATES.filter(s => s.lore);
+
+let hovered = null, selected = null, mode = "pol";
+const fade = {};            // per-state hover glow 0..1
+let warT = 0, selT = 0, queued = false, dpr = 1;
+function frame() { if (!queued) { queued = true; requestAnimationFrame(draw); } }
+function sizeOverlay() { dpr = Math.min(2, devicePixelRatio || 1); const r = ov.getBoundingClientRect(); ov.width = Math.round(r.width * dpr); ov.height = Math.round(r.height * dpr); frame(); }
+new ResizeObserver(sizeOverlay).observe(ov);
+viewer.addHandler("update-viewport", frame);
+viewer.addHandler("animation", frame);
+
+function xf() {
+  const a = vp().imageToViewerElementCoordinates(new OSD.Point(0, 0)), b = vp().imageToViewerElementCoordinates(new OSD.Point(W, 0));
+  return { s: (b.x - a.x) / W, tx: a.x, ty: a.y };
+}
+const ease = (cur, target, k) => Math.abs(target - cur) < .01 ? target : cur + (target - cur) * k;
+function draw() {
+  queued = false;
+  let again = false;
+  const { s, tx, ty } = xf();
+  g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, ov.width, ov.height);
+  g.setTransform(dpr * s, 0, 0, dpr * s, dpr * tx, dpr * ty);
+  const px = 1 / s;  // one screen pixel in image units
+
+  // Great War layer
+  const wt = ease(warT, mode === "war" ? 1 : 0, reduce ? 1 : .14); if (wt !== warT) again = true; warT = wt;
+  if (warT > 0) {
+    g.fillStyle = `rgba(9,22,27,${.62 * warT})`; g.fillRect(-W, -H, W * 3, H * 3);
+    for (const st of LORE_STATES) {
+      const c = WAR_SIDES[st.lore.war].color;
+      g.globalAlpha = warT * .62; g.fillStyle = c; g.fill(PATHS[st.id], "evenodd");
+      g.globalAlpha = warT; g.strokeStyle = c; g.lineWidth = 1.6 * px; g.stroke(PATHS[st.id]);
+    }
+    g.globalAlpha = 1;
+  }
+
+  // hover glow (fades in and out)
+  for (const st of STATES) {
+    const target = st.id === hovered ? 1 : 0, cur = fade[st.id] || 0;
+    if (!cur && !target) continue;
+    const v = ease(cur, target, reduce ? 1 : .22); fade[st.id] = v; if (v !== target) again = true;
+    if (!v) continue;
+    g.globalAlpha = v * (mode === "war" && st.lore ? .25 : .34); g.fillStyle = mode === "war" && st.lore ? "#F3E3B0" : st.color; g.fill(PATHS[st.id], "evenodd");
+    g.globalAlpha = v; g.shadowColor = "rgba(243,227,176,.85)"; g.shadowBlur = 14 * dpr;
+    g.strokeStyle = "#F5E7BD"; g.lineWidth = 2 * px; g.stroke(PATHS[st.id]);
+    g.shadowBlur = 0; g.globalAlpha = 1;
+  }
+
+  // selected state: brass outline that draws itself in
+  if (selected) {
+    const t = ease(selT, 1, reduce ? 1 : .08); if (t !== selT) again = true; selT = t;
+    const p = PATHS[selected];
+    g.globalAlpha = .18 * selT; g.fillStyle = STATE_BY_ID[selected].color; g.fill(p, "evenodd");
+    g.globalAlpha = selT; g.shadowColor = "rgba(221,187,104,.9)"; g.shadowBlur = 18 * dpr;
+    g.strokeStyle = "#E3C26F"; g.lineWidth = 3 * px; g.stroke(p);
+    g.shadowBlur = 0; g.globalAlpha = 1;
+  }
+  if (again) frame();
+}
+
+/* ---------- pointer: hover + click via hit-testing the outlines ---------- */
+const mapEl = document.getElementById("map");
+function stateAt(ex, ey) {
+  const { s, tx, ty } = xf(), ix = (ex - tx) / s, iy = (ey - ty) / s;
+  for (const st of STATES) {
+    const [x0, y0, x1, y1] = st.bbox;
+    if (ix < x0 || ix > x1 || iy < y0 || iy > y1) continue;
+    if (hitCtx.isPointInPath(PATHS[st.id], ix, iy, "evenodd")) return st;
+  }
+  return null;
+}
+let dragging = false;
+viewer.addHandler("canvas-drag", () => { dragging = true; setHover(null, null); });
+viewer.addHandler("canvas-release", () => { dragging = false; });
+mapEl.addEventListener("pointermove", e => {
+  if (dragging || e.pointerType === "touch") return;
+  const r = mapEl.getBoundingClientRect(), st = stateAt(e.clientX - r.left, e.clientY - r.top);
+  setHover(st, e);
+});
+mapEl.addEventListener("pointerleave", () => setHover(null, null));
+function setHover(st, ev) {
+  const id = st ? st.id : null;
+  if (id !== hovered) { hovered = id; mapEl.style.cursor = id ? "pointer" : ""; frame(); if (st) fillTip(st); else tip.classList.remove("show"); }
+  if (st && ev) moveTip(ev);
+}
+viewer.addHandler("canvas-click", e => {
+  if (!e.quick) return;
+  const st = stateAt(e.position.x, e.position.y);
+  if (st) openState(st.id); else if (selected) closeState();
+});
+
+/* ---------- map modes: states / Great War ---------- */
+const modes = document.getElementById("modes"), warLegend = document.getElementById("warLegend");
+function setMode(m) {
+  mode = m;
+  modes.querySelectorAll("[data-mode]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.mode === m)));
+  warLegend.hidden = m !== "war";
+  document.body.classList.toggle("war-mode", m === "war");
+  frame();
+}
+modes.addEventListener("click", e => { const b = e.target.closest("[data-mode]"); if (b) setMode(b.dataset.mode); });
+
+/* ---------- resident seals: overlays that ride along with the map ---------- */
+function addSeals() { LORE_STATES.forEach(s => {
+  const faces = s.residents.filter(r => !r.kind).slice(0, 3);
+  const el = document.createElement("div");
+  el.className = "seal-mk";
+  el.innerHTML = `<button type="button" class="mk" style="--c:${s.color}" aria-label="${s.name}: ${s.residents.length} ${plural(s.residents.length, ["житель", "жителя", "жителей"])}"><span class="mk-faces">${faces.map(r => faceHTML(r, 22)).join("")}</span><span class="mk-n">${s.residents.length}</span></button>`;
+  paintFaces(el);
+  viewer.addOverlay({ element: el, location: vp().imageToViewportCoordinates(s.cx, s.cy), placement: OSD.Placement.CENTER, checkResize: false });
+  new OSD.MouseTracker({ element: el, clickHandler: () => openState(s.id) });
+  el.addEventListener("mouseenter", e => { fillTip(s); moveTip(e); });
+  el.addEventListener("mousemove", e => moveTip(e));
+  el.addEventListener("mouseleave", () => tip.classList.remove("show"));
+}); }
+
+/* ---------- camera moves ---------- */
+// Fit an image-space box into the part of the map the article doesn't cover
+function flyToBox(x0, y0, x1, y1, { pad = 1.5, minSpan = 1400 } = {}) {
+  const el = mapEl.getBoundingClientRect(), cw = el.width, ch = el.height, mob = innerWidth <= 720;
+  const side = selected && !mob ? Math.min(440, innerWidth) - Math.max(0, innerWidth - el.right) : 0;
+  const cover = selected && mob ? ch * .62 : 0;
+  const vw = cw - side, vh = ch - cover;
+  let bw = Math.max(x1 - x0, minSpan) * pad, bh = Math.max(y1 - y0, minSpan / 2) * pad;
+  let w = Math.max(bw * cw / vw, bh * cw / ch * ch / vh);
+  const h = w * ch / cw, cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+  const rect = vp().imageToViewportRectangle(cx - (vw / 2) / cw * w, cy - (vh / 2) / ch * h, w, h);
+  vp().fitBounds(rect, reduce); vp().applyConstraints(reduce);
+}
+
+/* ---------- tooltip ---------- */
+const tip = document.getElementById("tip");
+function fillTip(s) {
+  tip.style.setProperty("--c", s.color);
+  const L_ = s.lore;
+  tip.innerHTML = `<p class="kicker">${s.continent}${L_?.title ? ", " + L_.title : ""}</p><h3>${s.name}</h3>` +
+    (L_ ? `<dl><dt>Столица</dt><dd>${L_.capital}</dd><dt>Режим</dt><dd>${L_.regime}</dd><dt>Война</dt><dd><span class="side" style="--c:${WAR_SIDES[L_.war].color}">${L_.war}</span></dd></dl>
+      <p class="hint">${L_.people.length} ${plural(L_.people.length, ["житель", "жителя", "жителей"])} в записях. Нажмите, чтобы открыть статью</p>`
+        : `<p class="hint">Записей пока нет. Нажмите, чтобы открыть карточку</p>`);
+}
+function moveTip(ev) {
+  if (!ev) return; const r = tip.getBoundingClientRect(); let x = ev.clientX + 18, y = ev.clientY + 18;
+  if (x + r.width > innerWidth - 12) x = ev.clientX - r.width - 18; if (y + r.height > innerHeight - 12) y = ev.clientY - r.height - 18;
+  tip.style.transform = `translate(${Math.max(8, x)}px,${Math.max(8, y)}px)`; tip.classList.add("show");
+}
+
+/* ---------- article ---------- */
+const article = document.getElementById("article");
+function openState(id, { fly = true } = {}) {
+  const s = STATE_BY_ID[id]; if (!s) return;
+  selected = id; selT = 0; frame();
+  tip.classList.remove("show");
+  const L_ = s.lore;
+  article.style.setProperty("--c", s.color);
+  article.innerHTML = `<div class="a-top"><span class="seal" style="--c:${s.color}" aria-hidden="true"></span><button class="close" type="button">Закрыть</button></div>
+    <p class="kicker" style="margin-top:18px">${s.continent}${L_?.title ? ", " + L_.title : ""}</p>
+    <h2>${s.name}</h2>` + (L_ ? `
+    <dl class="facts">
+      <dt>Столица</dt><dd>${L_.capital}</dd>
+      <dt>Режим</dt><dd>${L_.regime}</dd>
+      <dt>Великая война</dt><dd><a class="side" href="#war" style="--c:${WAR_SIDES[L_.war].color}">${L_.war}</a></dd>
+      <dt>Тема</dt><dd>${L_.theme}</dd>
+    </dl>
+    <h3>Жители</h3>
+    <ul class="people">${s.residents.map(r => `<li><a href="residents.html#${r.id}">${faceHTML(r, 30)}<span>${r.name}<small>${residentLine(r)}</small></span></a></li>`).join("")}</ul>
+    `
+    : `<dl class="facts"><dt>Континент</dt><dd>${s.continent}</dd><dt>Города</dt><dd>${CITIES.filter(c => c.stateObj === s).length}</dd></dl>`) +
+    (s.article ? `<p class="a-sum">${esc(s.article.summary || "")}${s.article.stub ? " <span class=\"blank\">Статья пока не дописана.</span>" : ""}</p>
+    <a class="read" href="${articleURL(s.article)}">Читать статью в вики</a>` : "") +
+    `<div class="a-actions">${s.article && editURL(s.article) ? `<a href="${editURL(s.article)}" target="_blank" rel="noopener">Редактировать статью</a>` : `<a href="wiki.html#a/kak-redaktirovat-viki">Как дополнить статью</a>`}</div>`;
+  paintFaces(article);
+  article.querySelector(".close").onclick = closeState; document.body.classList.add("reading");
+  article.classList.remove("open"); void article.offsetWidth; article.classList.add("open"); article.setAttribute("aria-hidden", "false"); article.scrollTop = 0;
+  if (fly) flyToBox(...s.bbox);
+  try { history.replaceState(null, "", "#" + id); } catch (_) {}
+}
+function closeState() {
+  selected = null; frame();
+  article.classList.remove("open"); article.setAttribute("aria-hidden", "true"); document.body.classList.remove("reading");
+  try { history.replaceState(null, "", location.pathname); } catch (_) {}
+}
+addEventListener("keydown", e => { if (e.key === "Escape" && selected) closeState(); });
+function goState(id) { document.querySelector(".atlas").scrollIntoView({ behavior: reduce ? "auto" : "smooth" }); openState(id); }
+
+/* ---------- continents ---------- */
+function flyContinent(name) {
+  const inC = STATES.filter(s => s.continent === name);
+  const c = GEO.continents[name];
+  let x0 = c.x, y0 = c.y, x1 = c.x, y1 = c.y;
+  inC.forEach(s => { x0 = Math.min(x0, s.bbox[0]); y0 = Math.min(y0, s.bbox[1]); x1 = Math.max(x1, s.bbox[2]); y1 = Math.max(y1, s.bbox[3]); });
+  flyToBox(x0, y0, x1, y1, { pad: 1.25, minSpan: 3000 });
+}
+const byCont = {};
+STATES.forEach(s => (byCont[s.continent] ||= []).push(s));
+const contOrder = CONTINENTS.filter(c => byCont[c]).sort((a, b) => byCont[b].length - byCont[a].length);
+document.getElementById("lands").innerHTML = contOrder.map(c => `<button type="button" data-cont="${c}">${c}</button>`).join("");
+document.getElementById("lands").addEventListener("click", e => { const b = e.target.closest("[data-cont]"); if (b) flyContinent(b.dataset.cont); });
+document.getElementById("conts").innerHTML = contOrder.map(c => `<div class="cont"><h3><button type="button" data-cont-go="${c}">${c}</button><small>${byCont[c].length}</small></h3><ul>` +
+  byCont[c].sort((a, b) => (!!b.lore - !!a.lore) || a.name.localeCompare(b.name, "ru")).map(s =>
+    `<li><button type="button" data-state="${s.id}"><span class="dot" style="--c:${s.color}"></span>${s.name}${s.lore ? '<span class="rec">есть запись</span>' : ""}</button></li>`).join("") + `</ul></div>`).join("");
+
+/* ---------- Great War ---------- */
+const sides = {};
+STATES.filter(s => s.lore).forEach(s => (sides[s.lore.war] ||= []).push(s));
+document.getElementById("warGrid").innerHTML = Object.keys(WAR_SIDES).filter(k => sides[k]).map(k => `<div class="side-card" style="--c:${WAR_SIDES[k].color}">
+  <h3>${k[0].toUpperCase() + k.slice(1)}</h3><p>${WAR_SIDES[k].note || plural(sides[k].length, ["государство", "государства", "государств"]).replace(/^/, sides[k].length + " ")}</p>
+  <ul>${sides[k].map(s => `<li><button type="button" data-state="${s.id}">${s.name}</button></li>`).join("")}</ul></div>`).join("");
+
+warLegend.innerHTML = `<p>Стороны Великой войны</p>` + Object.keys(WAR_SIDES).filter(k => sides[k]).map(k =>
+  `<div class="wl-side"><span class="wl-dot" style="--c:${WAR_SIDES[k].color}"></span><b>${k[0].toUpperCase() + k.slice(1)}</b><span>${sides[k].map(s => `<button type="button" data-state-map="${s.id}">${s.name}</button>`).join("")}</span></div>`).join("") +
+  `<p class="wl-note">У остальных государств записей о войне пока нет.</p>`;
+warLegend.addEventListener("click", e => { const b = e.target.closest("[data-state-map]"); if (b) openState(b.dataset.stateMap); });
+
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-state]"); if (b) { goState(b.dataset.state); return; }
+  const c = e.target.closest("[data-cont-go]"); if (c) { document.querySelector(".atlas").scrollIntoView({ behavior: reduce ? "auto" : "smooth" }); flyContinent(c.dataset.contGo); }
+});
+
+const withLore = STATES.filter(s => s.lore).length;
+document.getElementById("lede").innerHTML = `Карта мира, редакция V4. <em>${STATES.length} ${plural(STATES.length, ["государство", "государства", "государств"])}</em> на ${contOrder.length} континентах, о ${withLore} есть записи. Наведите на страну, чтобы узнать о ней, нажмите, чтобы открыть статью.`;
+
+/* ---------- city focus ---------- */
+let cityPin = null;
+function focusCity(c) {
+  document.querySelector(".atlas").scrollIntoView({ behavior: reduce ? "auto" : "smooth" });
+  if (selected) closeState();
+  if (cityPin) viewer.removeOverlay(cityPin);
+  cityPin = document.createElement("div"); cityPin.className = "city-pin";
+  cityPin.innerHTML = `<span>${esc(c.name)}${c.stateObj ? ", " + esc(c.stateObj.name) : ""}</span><i></i>`;
+  viewer.addOverlay({ element: cityPin, location: vp().imageToViewportCoordinates(c.x, c.y), placement: OSD.Placement.BOTTOM, checkResize: false });
+  flyToBox(c.x - 300, c.y - 200, c.x + 300, c.y + 200, { pad: 1, minSpan: 1500 });
+}
+initSearch({ onState: goState, onResident: id => location.href = "residents.html#" + id, onCity: focusCity });
+</script>
+</body>
+</html>

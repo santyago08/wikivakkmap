@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Жители Канъяло</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,400;0,500;0,700;1,400&family=Alegreya+SC:wght@500;700&family=Alegreya+Sans:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="site.css">
+<style>
+.hall{display:grid;grid-template-columns:340px minmax(0,1fr);min-height:calc(100svh - 57px)}
+
+/* roster */
+.roster{border-right:1px solid rgba(236,231,214,.08);padding:26px 0 40px;max-height:calc(100svh - 57px);overflow-y:auto;position:sticky;top:57px}
+.roster h1{font:700 34px/1 var(--sc);margin:0 24px 6px}
+.roster > p{font:400 15px/1.45 var(--ui);color:var(--mist);margin:0 24px 18px}
+.filters{display:flex;flex-wrap:wrap;gap:5px;margin:0 24px 18px}
+.filters button{background:none;border:1px solid rgba(236,231,214,.18);color:var(--mist);font:500 14px var(--ui);padding:5px 11px;border-radius:999px;cursor:pointer;display:flex;align-items:center;gap:7px}
+.filters button .dot{width:8px;height:8px;border-radius:50%;background:var(--c)}
+.filters button:hover{color:var(--foam);border-color:var(--mist)}
+.filters button[aria-pressed="true"]{background:var(--foam);color:var(--abyss);border-color:var(--foam)}
+.group h2{font:500 17px var(--sc);color:var(--mist);margin:18px 24px 6px;display:flex;align-items:center;gap:8px}
+.group h2 .dot{width:9px;height:9px;border-radius:50%;background:var(--c)}
+.group ul{list-style:none;margin:0;padding:0}
+.who{width:100%;display:flex;align-items:center;gap:12px;background:none;border:0;padding:7px 24px;cursor:pointer;text-align:left;font:500 17px/1.25 var(--serif);color:var(--foam)}
+.who small{display:block;font:400 13.5px var(--ui);color:var(--mist-2)}
+.who:hover{background:rgba(236,231,214,.05)}
+.who[aria-current="true"]{background:rgba(221,187,104,.12);box-shadow:inset 3px 0 var(--brass)}
+
+/* stage */
+.stage{display:grid;grid-template-columns:minmax(300px,1fr) minmax(0,520px);align-items:stretch}
+.view{position:relative;min-height:560px;background:radial-gradient(ellipse 60% 55% at 50% 42%,var(--sea-3) 0%,var(--sea) 55%,var(--abyss) 100%)}
+.view canvas.sv{position:absolute;inset:0;width:100%!important;height:100%!important;cursor:grab}
+.view canvas.sv:active{cursor:grabbing}
+.plinth{position:absolute;left:50%;bottom:13.5%;width:220px;height:34px;transform:translateX(-50%);border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.55),transparent)}
+.view-ctrl{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);display:flex;gap:4px;background:rgba(13,31,37,.7);padding:4px;border-radius:999px;backdrop-filter:blur(6px)}
+.view-ctrl button{background:none;border:0;color:var(--mist);font:500 14.5px var(--ui);padding:6px 14px;border-radius:999px;cursor:pointer}
+.view-ctrl button[aria-pressed="true"]{background:var(--foam);color:var(--abyss)}
+.view-hint{position:absolute;top:18px;left:0;right:0;text-align:center;font:400 14px var(--ui);color:var(--mist-2)}
+.sigil{position:absolute;inset:0;display:grid;place-items:center;text-align:center}
+.sigil div{font:700 140px/1 var(--sc);color:rgba(236,231,214,.12)}
+.sigil p{font:400 16px var(--ui);color:var(--mist);margin:12px 0 0}
+
+.card{padding:clamp(28px,4vw,48px);border-left:6px solid var(--c)}
+.card .kicker a{color:inherit}
+.card h2{font:700 clamp(32px,3.6vw,48px)/1.05 var(--serif)}
+.card .bio{font-size:18.5px;line-height:1.65}
+.card .bio p{margin:0 0 14px}
+.card .bio h2{font:700 21px var(--serif);margin:22px 0 6px}
+.card .bio h3{font:700 18px var(--serif);margin:18px 0 6px}
+.card .bio em{color:var(--ink-2)}
+.also{font:400 15px var(--ui);color:var(--ink-2);margin-top:22px}
+.also a{color:var(--ink)}
+.skin-note{font:400 14px var(--ui);color:var(--ink-2);margin-top:26px;padding-top:14px;border-top:1px solid var(--rule)}
+
+@media (max-width:1200px){ .stage{grid-template-columns:1fr} .view{min-height:440px} }
+@media (max-width:820px){
+  .hall{grid-template-columns:1fr}
+  .roster{position:static;max-height:none;border-right:0;border-top:1px solid rgba(236,231,214,.08);order:2}
+  .view{min-height:380px}
+}
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <a class="mark" href="index.html"><b>Канъяло</b><span>атлас мира</span></a>
+  <nav class="nav" aria-label="Разделы">
+    <a href="index.html">Атлас</a>
+    <a href="wiki.html">Вики</a>
+    <a href="residents.html" aria-current="page">Жители</a>
+    <a href="index.html#war">Великая война</a>
+  </nav>
+  <div class="bar-right">
+    <div class="find">
+      <input id="q" type="search" placeholder="Статья, город или житель" aria-label="Поиск по вики" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="found">
+      <ul class="found" id="found" role="listbox"></ul>
+    </div>
+  </div>
+</header>
+
+<div class="hall">
+  <aside class="roster" aria-label="Список жителей">
+    <h1>Жители</h1>
+    <p id="lede"></p>
+    <div class="filters" id="filters" role="group" aria-label="Государство"></div>
+    <div id="list"></div>
+  </aside>
+  <main class="stage">
+    <div class="view" id="view">
+      <p class="view-hint">Потяните, чтобы повернуть</p>
+      <div class="plinth" aria-hidden="true"></div>
+      <canvas class="sv" id="sv" aria-label="Трёхмерная модель жителя"></canvas>
+      <div class="sigil" id="sigil" hidden><div><div id="sigilGlyph"></div><p>Облик этого существа не задан</p></div></div>
+      <div class="view-ctrl" id="anim" role="group" aria-label="Движение">
+        <button type="button" data-a="idle" aria-pressed="true">Стоит</button>
+        <button type="button" data-a="walk" aria-pressed="false">Идёт</button>
+        <button type="button" data-a="spin" aria-pressed="false">Вращать</button>
+      </div>
+    </div>
+    <article class="card sheet" id="card" aria-live="polite"></article>
+  </main>
+</div>
+
+<footer>
+  <div><b>Канъяло</b> — ролевой мир Minecraft-сервера.</div>
+  <nav><a href="index.html">Атлас</a><a href="index.html#war">Великая война</a></nav>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/skinview3d@3.1.0/bundles/skinview3d.bundle.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
+<script src="map/states.js"></script>
+<script src="wiki-data.js"></script>
+<script src="wiki.config.js"></script>
+<script src="wiki-core.js"></script>
+<script>
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const loreStates = STATES.filter(s => s.lore);
+let filter = "all", current = null;
+
+document.getElementById("lede").textContent = `${RESIDENTS.length} ${plural(RESIDENTS.length, ["житель", "жителя", "жителей"])} из ${loreStates.length} государств, о которых есть записи.`;
+
+/* ---------- roster ---------- */
+const filters = document.getElementById("filters"), list = document.getElementById("list");
+filters.innerHTML = `<button type="button" data-f="all">Все</button>` + loreStates.map(s => `<button type="button" data-f="${s.id}"><span class="dot" style="--c:${s.color}"></span>${s.lore.title || s.name.replace(/^(Свободная Территория|Республика|Объединённое Королевство|Конфедерация) /, "")}</button>`).join("");
+function renderList() {
+  filters.querySelectorAll("[data-f]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.f === filter)));
+  list.innerHTML = loreStates.filter(s => filter === "all" || s.id === filter).map(s => `<section class="group"><h2><span class="dot" style="--c:${s.color}"></span>${s.name}</h2><ul>` +
+    s.residents.map(r => `<li><button type="button" class="who" data-r="${r.id}" aria-current="${r.id === current}">${faceHTML(r, 34)}<span>${r.name}<small>${residentLine(r)}</small></span></button></li>`).join("") + `</ul></section>`).join("");
+  paintFaces(list);
+}
+filters.addEventListener("click", e => { const b = e.target.closest("[data-f]"); if (b) { filter = b.dataset.f; renderList(); } });
+list.addEventListener("click", e => { const b = e.target.closest("[data-r]"); if (b) show(b.dataset.r); });
+
+/* ---------- 3D viewer ---------- */
+const view = document.getElementById("view"), cv = document.getElementById("sv");
+let viewer = null, mode = "idle";
+try {
+  viewer = new skinview3d.SkinViewer({ canvas: cv, width: view.clientWidth, height: view.clientHeight });
+  viewer.zoom = .62; viewer.controls.enableZoom = false; viewer.controls.enablePan = false;
+  viewer.animation = new skinview3d.IdleAnimation();
+  viewer.autoRotateSpeed = .5;
+  viewer.playerObject.rotation.y = .55;
+  new ResizeObserver(() => viewer.setSize(view.clientWidth, view.clientHeight)).observe(view);
+} catch (err) { cv.hidden = true; }
+const anim = document.getElementById("anim");
+anim.addEventListener("click", e => {
+  const b = e.target.closest("[data-a]"); if (!b || !viewer) return;
+  if (b.dataset.a === "spin") { viewer.autoRotate = !viewer.autoRotate; b.setAttribute("aria-pressed", String(viewer.autoRotate)); return; }
+  mode = b.dataset.a;
+  viewer.animation = mode === "walk" ? new skinview3d.WalkingAnimation() : new skinview3d.IdleAnimation();
+  if (reduce) viewer.animation.paused = true;
+  anim.querySelectorAll("[data-a=idle],[data-a=walk]").forEach(x => x.setAttribute("aria-pressed", String(x.dataset.a === mode)));
+});
+
+/* ---------- card ---------- */
+const card = document.getElementById("card"), sigil = document.getElementById("sigil");
+function show(id, { scroll = true } = {}) {
+  const r = RES_BY_ID[id]; if (!r) return;
+  current = id;
+  list.querySelectorAll(".who").forEach(b => b.setAttribute("aria-current", String(b.dataset.r === id)));
+  const home = STATE_BY_ID[r.states[0]], L_ = home.lore, sk = skinOf(r);
+  card.style.setProperty("--c", home.color);
+  card.innerHTML = `<p class="kicker"><a href="index.html#${home.id}">${home.name}</a></p>
+    <h2>${r.name}</h2>
+    <dl class="facts">
+      ${r.kind ? `<dt>Сущность</dt><dd>${r.kind}</dd>` : `<dt>Раса</dt><dd>${RACES[r.race] || r.race}</dd><dt>Пол</dt><dd>${sexWord(r)}</dd>`}
+      <dt>Государство</dt><dd>${r.states.map(s => `<a href="index.html#${s}">${STATE_BY_ID[s].name}</a>`).join(", ")}</dd>
+      <dt>Великая война</dt><dd><span class="side" style="--c:${WAR_SIDES[L_.war].color}">${L_.war}</span></dd>
+    </dl>
+    <div class="bio">${renderMarkdown(r.article.body)}</div>
+    <p class="also"><a href="${articleURL(r.article)}">Статья о жителе в вики</a>${editURL(r.article) ? `&nbsp;&nbsp; <a href="${editURL(r.article)}" target="_blank" rel="noopener">Редактировать</a>` : ""}</p>
+    ${r.states.length > 1 ? `<p class="also">Встречается в записях двух государств: ${r.states.map(s => STATE_BY_ID[s].name).join(" и ")}.</p>` : ""}
+    ${sk && !sk.custom ? `<p class="skin-note">Показан стандартный облик. Свой скин указывается в статье жителя, в поле skin.</p>` : ""}`;
+  if (viewer) {
+    if (sk) { sigil.hidden = true; cv.hidden = false; anim.hidden = false; viewer.loadSkin(sk.url, { model: sk.slim ? "slim" : "default" }).catch(() => {}); }
+    else { sigil.hidden = false; cv.hidden = true; anim.hidden = true; document.getElementById("sigilGlyph").textContent = r.name[0]; }
+  }
+  try { history.replaceState(null, "", "#" + id); } catch (_) {}
+  if (scroll && innerWidth <= 820) view.scrollIntoView({ behavior: reduce ? "auto" : "smooth" });
+}
+
+initSearch({ onState: id => location.href = "index.html#" + id, onResident: id => { filter = "all"; renderList(); show(id); } });
+renderList();
+const start = decodeURIComponent(location.hash.slice(1));
+show(RES_BY_ID[start] ? start : RESIDENTS[0].id, { scroll: false });
+</script>
+</body>
+</html>

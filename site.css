@@ -1,0 +1,76 @@
+/* Канъяло — общие стили. Тёмное море, бумажные листы, чернила и латунь. */
+:root{
+  --abyss:#0D1F25; --sea:#142E36; --sea-2:#1B3B43; --sea-3:#24505A;
+  --foam:#ECE7D6; --mist:#A3B8B3; --mist-2:#7E9893;
+  --paper:#E7E2CE; --paper-2:#D9D3BB; --paper-3:#C9C2A6;
+  --ink:#2A2521; --ink-2:#5B534A; --rule:#B9B297;
+  --brass:#DDBB68; --wax:#A8483C;
+  --serif:"Alegreya", Georgia, serif;
+  --sc:"Alegreya SC", "Alegreya", Georgia, serif;
+  --ui:"Alegreya Sans", system-ui, sans-serif;
+  --gutter:clamp(16px,4vw,48px);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--abyss);color:var(--foam);font:400 18px/1.6 var(--serif);-webkit-font-smoothing:antialiased}
+a{color:inherit}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--brass);outline-offset:3px}
+img{display:block}
+[hidden]{display:none!important}
+
+/* ---------- header ---------- */
+.bar{position:sticky;top:0;z-index:1000;display:flex;align-items:center;gap:28px;padding:10px var(--gutter);background:rgba(13,31,37,.86);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid rgba(236,231,214,.08)}
+.mark{display:flex;align-items:baseline;gap:10px;text-decoration:none;flex:none}
+.mark b{font:700 23px/1 var(--sc);letter-spacing:.04em;color:var(--foam)}
+.mark span{font:400 14px var(--ui);color:var(--mist)}
+.nav{display:flex;gap:4px}
+.nav a{white-space:nowrap;font:500 16px var(--ui);color:var(--mist);text-decoration:none;padding:7px 12px;border-radius:999px}
+.nav a:hover{color:var(--foam);background:rgba(236,231,214,.06)}
+.nav a[aria-current]{color:var(--abyss);background:var(--foam)}
+.bar-right{margin-left:auto;display:flex;gap:10px;align-items:center}
+.find{position:relative}
+.find input{width:280px;background:rgba(236,231,214,.07);border:1px solid rgba(236,231,214,.14);border-radius:999px;color:var(--foam);font:400 15.5px var(--ui);padding:8px 16px}
+.find input::placeholder{color:var(--mist-2)}
+.find input:focus{background:rgba(236,231,214,.12);outline:none;border-color:var(--brass)}
+.found{position:absolute;right:0;top:calc(100% + 8px);width:360px;max-height:62vh;overflow:auto;margin:0;padding:6px;list-style:none;background:var(--paper);color:var(--ink);border-radius:6px;box-shadow:0 24px 50px -20px rgba(0,0,0,.7);display:none;z-index:70}
+.found.show{display:block}
+.found button{width:100%;display:flex;gap:12px;align-items:center;text-align:left;background:none;border:0;border-radius:4px;padding:8px 10px;cursor:pointer;font-family:var(--serif)}
+.found button:hover,.found button[aria-selected="true"]{background:var(--paper-2)}
+.found .sw{width:12px;height:12px;border-radius:50%;flex:none;background:var(--c)}
+.found small{display:block;font:400 13.5px var(--ui);color:var(--ink-2)}
+.found .none{padding:10px 12px;font:400 15px var(--ui);color:var(--ink-2)}
+
+/* ---------- paper sheet (articles, cards) ---------- */
+.sheet{background:var(--paper);color:var(--ink)}
+.sheet .kicker{font:500 14.5px var(--ui);color:var(--ink-2);margin:0}
+.sheet h2{font:700 clamp(28px,3vw,36px)/1.1 var(--serif);margin:6px 0 10px;text-wrap:balance}
+.facts{display:grid;grid-template-columns:auto 1fr;gap:8px 22px;margin:22px 0;padding:16px 0;border-block:1px solid var(--rule);font-size:16.5px}
+.facts dt{font:400 15px/1.7 var(--ui);color:var(--ink-2)}
+.facts dd{margin:0}
+.side{display:inline-flex;align-items:center;gap:8px}
+.side::before{content:"";width:10px;height:10px;border-radius:50%;background:var(--c)}
+.blank{color:var(--ink-2);font-style:italic}
+
+/* ---------- residents' faces ---------- */
+.face{width:var(--s,32px);height:var(--s,32px);image-rendering:pixelated;border-radius:4px;background:var(--paper-3);flex:none}
+
+footer{display:flex;flex-wrap:wrap;gap:12px 32px;justify-content:space-between;padding:28px var(--gutter);font:400 15px var(--ui);color:var(--mist);border-top:1px solid rgba(236,231,214,.08)}
+footer b{color:var(--foam);font-weight:500}
+footer nav{display:flex;gap:20px}
+
+@media (max-width:900px){
+  .bar{flex-wrap:wrap;gap:10px 18px}
+  .bar-right{width:100%;margin:0}
+  .find,.find input{width:100%}
+  .found{width:100%}
+  .mark span{display:none}
+  .nav{overflow-x:auto;max-width:100%;scrollbar-width:none}
+  .nav a{padding:6px 10px;font-size:15px}
+}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} *{transition:none!important;animation:none!important} }
+
+/* wiki links inside paper sheets */
+.sheet a.wl{color:#2F5B62;text-decoration:none;border-bottom:1px solid rgba(47,91,98,.35)}
+.sheet a.wl.new{color:#A8483C;border-bottom:1px dashed rgba(168,72,60,.55)}
+.sheet a.wl.city{color:#4F5D3A;border-bottom-style:dotted}
