@@ -1,10 +1,15 @@
 ---
 title: Рикка Смит
 category: Житель
-race: Кив
+summary: 'Житель: Рейнасская Федерация.'
+states:
+  - Рейнасская Федерация
+race: Ч
 sex: Ж
-states: [Рейнасская Федерация]
-summary: "Житель: Рейнасская Федерация."
+kind: ''
+skin: ''
+slim: false
+portrait: ''
 stub: true
 ---
 
