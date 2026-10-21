@@ -1,10 +1,15 @@
 ---
 title: Нит Кассея
 category: Житель
-race: К
+summary: 'Житель: Хакоранское Королевство.'
+states:
+  - Хакоранское Королевство
+race: Э
 sex: М
-states: [Хакоранское Королевство]
-summary: "Житель: Хакоранское Королевство."
+kind: ''
+skin: ''
+slim: false
+portrait: ''
 stub: true
 ---
 
