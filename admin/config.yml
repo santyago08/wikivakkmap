@@ -49,6 +49,15 @@ collections:
       - { name: theme, label: "Тема (музыка)", widget: string, required: false }
       - { name: image, label: "Герб или флаг", widget: image, required: false }
       - { name: color, label: "Цвет на карте", widget: string, required: false, hint: "Не меняйте: по этому цвету государство находится на карте" }
+      - &info
+        name: info
+        label: "Дополнительные сведения"
+        widget: list
+        required: false
+        hint: "Любые факты, для которых нет отдельного поля: «Население — 5 млн». Показываются на странице в блоке «Сведения». Новые столбцы из таблицы Excel попадают сюда"
+        fields:
+          - { name: name, label: Название, widget: string }
+          - { name: value, label: Значение, widget: string }
       - &stub { name: stub, label: "Заготовка (статья не дописана)", widget: boolean, default: true, required: false }
       - &body { name: body, label: "Текст статьи", widget: markdown, required: false, hint: "Ссылка на другую статью: [[Название]] или [[Название|свой текст]]" }
 
@@ -72,6 +81,7 @@ collections:
       - { name: skin, label: "Скин", widget: string, required: false, hint: "Ник Minecraft-аккаунта со скином или путь к файлу, например images/skin-ivan.png" }
       - { name: slim, label: "Тонкие руки (модель Алекс)", widget: boolean, required: false }
       - { name: portrait, label: Портрет, widget: image, required: false }
+      - *info
       - *stub
       - *body
 
@@ -87,6 +97,7 @@ collections:
       - { name: category, label: Раздел, widget: hidden, default: Город }
       - *summary
       - { name: image, label: Изображение, widget: image, required: false }
+      - *info
       - *stub
       - *body
 
@@ -106,6 +117,7 @@ collections:
       - { name: other_races, label: "Прочие расы", widget: string, required: false }
       - { name: key_states, label: "Важные государства", widget: string, required: false }
       - { name: climate, label: "Климатические зоны", widget: text, required: false }
+      - *info
       - *stub
       - *body
 
@@ -134,6 +146,7 @@ collections:
       - { name: god, label: "Кому поклоняются", widget: string, required: false }
       - { name: extra, label: "Прочее", widget: text, required: false }
       - { name: image, label: Изображение, widget: image, required: false }
+      - *info
       - *stub
       - *body
 
@@ -150,6 +163,7 @@ collections:
       - *summary
       - { name: side, label: "Союз Великой войны", widget: select, required: false, options: [Конгломерат, Акрецис], hint: "Только для двух военных союзов" }
       - { name: image, label: "Герб или символ", widget: image, required: false }
+      - *info
       - *stub
       - *body
 
@@ -166,6 +180,7 @@ collections:
       - *summary
       - { name: when, label: "Когда", widget: string, required: false }
       - { name: image, label: Изображение, widget: image, required: false }
+      - *info
       - *stub
       - *body
 

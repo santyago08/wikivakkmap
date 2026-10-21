@@ -4,64 +4,26 @@
 //         node tools/import-excel.mjs --dry    — только показать, что изменится
 // На GitHub запускается автоматически перед каждой публикацией.
 //
-// Таблица узнаётся по содержимому, а не по имени файла:
-//   государства — строка, которая начинается с «Название государства» (одна строка — одно государство);
-//   расы        — строка, которая начинается с «Название расы» (один столбец — одна раса);
-//   континенты  — строка с названиями континентов (один столбец — один континент).
-// Поля из таблицы заменяют поля статьи. Текст статьи, написанный редакторами, не трогается:
-// обновляются только автоматические вводные фразы. Важные персонажи и правители становятся жителями.
+// Таблицы двух видов:
+// 1. Таблица, скачанная с сайта (tools/export-excel.mjs), и любая таблица по тем же правилам: лист — раздел вики
+//    (по названию листа), строка или столбец — статья, заголовки — поля как в редакторе. Неизвестные заголовки
+//    становятся «Дополнительными сведениями». Если в файле есть скрытая копия данных (лист «_<раздел>»),
+//    переносятся только ячейки, изменённые после скачивания; иначе — все непустые ячейки.
+// 2. Первые таблицы мира (узнаются по содержимому): государства — строка «Название государства…»,
+//    расы — столбец «Название расы», континенты — строка с названиями континентов. Их поля заменяют поля статей.
+// Текст статей, написанный редакторами, не трогается: обновляются только автоматические вводные фразы.
 import { readFileSync, writeFileSync, readdirSync, existsSync } from "node:fs";
-import { inflateRawSync } from "node:zlib";
 import { createHash } from "node:crypto";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import yaml from "./vendor/js-yaml.mjs";
+import { readXlsx } from "./xlsx.mjs";
+import { loadSections, sectionOfSheet, columnOf, fromCell, normLabel } from "./tables.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const ART = join(ROOT, "articles"), XL = join(ROOT, "excel");
 const STATE_FILE = join(XL, ".imported.json"), REPORT_FILE = join(XL, "ОТЧЁТ.md");
 const ALL = process.argv.includes("--all"), DRY = process.argv.includes("--dry");
-
-/* ---------- xlsx reader (an .xlsx file is a zip of XML files) ---------- */
-function unzip(buf) {
-  let eocd = buf.length - 22;
-  while (eocd >= 0 && buf.readUInt32LE(eocd) !== 0x06054b50) eocd--;
-  if (eocd < 0) throw new Error("это не файл .xlsx");
-  const files = {};
-  let p = buf.readUInt32LE(eocd + 16);
-  for (let i = buf.readUInt16LE(eocd + 10); i > 0; i--) {
-    const method = buf.readUInt16LE(p + 10), size = buf.readUInt32LE(p + 20);
-    const nameLen = buf.readUInt16LE(p + 28), extraLen = buf.readUInt16LE(p + 30), commentLen = buf.readUInt16LE(p + 32);
-    const local = buf.readUInt32LE(p + 42), name = buf.toString("utf8", p + 46, p + 46 + nameLen);
-    const start = local + 30 + buf.readUInt16LE(local + 26) + buf.readUInt16LE(local + 28);
-    const data = buf.subarray(start, start + size);
-    files[name] = () => (method === 8 ? inflateRawSync(data) : data).toString("utf8");
-    p += 46 + nameLen + extraLen + commentLen;
-  }
-  return files;
-}
-const unxml = s => s.replace(/&(lt|gt|quot|apos|amp|#x?[0-9a-f]+);/gi, (_, e) => ({ lt: "<", gt: ">", quot: '"', apos: "'", amp: "&" })[e.toLowerCase()]
-  ?? String.fromCodePoint(e[1].toLowerCase() === "x" ? parseInt(e.slice(2), 16) : +e.slice(1)));
-const textOf = xml => [...xml.matchAll(/<t(?:\s[^>]*)?>([\s\S]*?)<\/t>/g)].map(m => unxml(m[1])).join("");
-const colIndex = ref => [...ref.replace(/\d+/g, "")].reduce((n, c) => n * 26 + c.charCodeAt(0) - 64, 0) - 1;
-function readWorkbook(file) {
-  const z = unzip(readFileSync(file));
-  const shared = z["xl/sharedStrings.xml"] ? [...z["xl/sharedStrings.xml"]().matchAll(/<si>([\s\S]*?)<\/si>/g)].map(m => textOf(m[1])) : [];
-  return Object.keys(z).filter(n => /^xl\/worksheets\/sheet\d+\.xml$/.test(n)).sort((a, b) => parseInt(a.match(/\d+/)) - parseInt(b.match(/\d+/))).map(n => {
-    const rows = [];
-    for (const r of z[n]().matchAll(/<row\b[^>]*?\br="(\d+)"[^>]*?(?:\/>|>([\s\S]*?)<\/row>)/g)) {
-      const row = [];
-      for (const c of (r[2] || "").matchAll(/<c\b([^>]*?)(?:\/>|>([\s\S]*?)<\/c>)/g)) {
-        const ref = (c[1].match(/\br="([A-Z]+\d+)"/) || [])[1], type = (c[1].match(/\bt="(\w+)"/) || [])[1], inner = c[2] || "";
-        const v = (inner.match(/<v>([\s\S]*?)<\/v>/) || [])[1];
-        const val = type === "s" ? shared[+v] : type === "inlineStr" ? textOf(inner) : v != null ? unxml(v) : "";
-        if (ref) row[colIndex(ref)] = val ?? "";
-      }
-      rows[+r[1] - 1] = Array.from(row, x => x ?? "");
-    }
-    return Array.from(rows, x => x ?? []);
-  });
-}
 
 /* ---------- text helpers ---------- */
 const TR = {а:"a",б:"b",в:"v",г:"g",д:"d",е:"e",ё:"e",ж:"zh",з:"z",и:"i",й:"y",к:"k",л:"l",м:"m",н:"n",о:"o",п:"p",р:"r",с:"s",т:"t",у:"u",ф:"f",х:"h",ц:"ts",ч:"ch",ш:"sh",щ:"sch",ъ:"",ы:"y",ь:"",э:"e",ю:"yu",я:"ya"};
@@ -119,10 +81,12 @@ function newArticle(meta, body) {
   return a;
 }
 const changes = new Map(); // article → list of changed fields
+const before = new Map();  // article → its fields before this import
 function set(a, key, value) {
   const empty = v => v == null || v === "" || (Array.isArray(v) && !v.length);
   if (empty(value) && empty(a.meta[key])) return;
   if (JSON.stringify(a.meta[key] ?? "") === JSON.stringify(value ?? "")) return;
+  if (!before.has(a)) before.set(a, { ...a.meta });
   a.meta[key] = value;
   (changes.get(a) || changes.set(a, []).get(a)).push(key);
 }
@@ -189,13 +153,27 @@ function writeResidents() {
     set(a, "states", states);
     if (p.sex) set(a, "sex", p.sex);
     if (race && !a.meta.kind) set(a, "race", race);
-    set(a, "role", p.roles.join("; "));
-    if (!a.meta.summary || /^Житель[:.]/.test(a.meta.summary)) set(a, "summary", [p.roles.join("; "), states.join(", ")].filter(Boolean).join(" — ").replace(/^./, c => c.toUpperCase()) + ".");
-    replaceIntro(a, /^\*\*[^*]+\*\* — (житель|жительница) государств/, `**${a.meta.title}** — ${p.roles.length ? lower1(p.roles.join("; ")) + ", " : ""}${p.sex === "Ж" ? "жительница" : "житель"} ${states.length > 1 ? "государств" : "государства"} ${states.map(s => `[[${s}]]`).join(", ")}.`);
+    if (p.roles.length) set(a, "role", p.roles.join("; "));
+    refreshResident(a);
   }
+}
+// Automatic summary and first sentence of a resident, from the fields
+const residentSummary = m => ([m.role, [].concat(m.states || []).join(", ")].filter(Boolean).join(" — ").replace(/^./, c => c.toUpperCase()) || "Житель") + ".";
+function refreshResident(a) {
+  const states = [].concat(a.meta.states || []), role = a.meta.role || "";
+  // The summary is rewritten only if nobody wrote their own (it is empty or still the automatic one)
+  if (!a.meta.summary || /^Житель[:.]/.test(a.meta.summary) || a.meta.summary === residentSummary(before.get(a) || a.meta)) set(a, "summary", residentSummary(a.meta));
+  if (states.length) replaceIntro(a, /^\*\*[^*]+\*\* — (.*, )?(житель|жительница) (государств|мира)/, `**${a.meta.title}** — ${role ? lower1(role) + ", " : ""}${a.meta.sex === "Ж" ? "жительница" : "житель"} ${states.length > 1 ? "государств" : "государства"} ${states.map(s => `[[${s}]]`).join(", ")}.`);
 }
 
 /* ---------- sheet: states ---------- */
+// Automatic summary and first sentence of a state, from the fields
+function refreshState(a) {
+  if (!a.meta.summary || /^Государство на континенте/.test(a.meta.summary))
+    set(a, "summary", `Государство на континенте ${a.meta.continent || "—"}.${a.meta.capital ? ` Столица — ${a.meta.capital}.` : ""}${a.meta.regime ? ` ${a.meta.regime}.` : ""}`);
+  const capital = a.meta.capital ? ` Столица — [[${a.meta.capital.replace(/\s*\(.*$/, "").split(",")[0].trim()}]].` : "";
+  replaceIntro(a, /^\*\*[^*]+\*\*( \([^)]*\))? — государство/, `**${a.meta.title}**${[].concat(a.meta.aliases || []).length ? ` (${[].concat(a.meta.aliases)[0]})` : ""} — государство на континенте [[${a.meta.continent}]].${capital}${a.meta.regime ? ` Политический строй — ${lower1(a.meta.regime)}.` : ""}${a.meta.war && a.meta.war !== "отсутствует" && a.meta.war !== "против всех" ? ` В [[Великая война|Великой войне]] выступает на стороне [[${a.meta.war}|${a.meta.war === "Конгломерат" ? "Конгломерата" : "Акрециса"}]].` : ""}`);
+}
 const STATE_COLS = [
   [/^Название государства/i, "title"], [/^Континент/i, "continent"], [/Политический строй/i, "regime"], [/^Идеология/i, "ideology"],
   [/^Столица/i, "capital"], [/Другие города/i, "cities"], [/Имя лидера/i, "leaders"], [/Раса лидера|Главная раса/i, "main_race"],
@@ -239,10 +217,7 @@ function importStates(rows, h) {
       const known = PERSON_RACE[r];
       addPerson(p.name, a.meta.title, known ? { sex, race: known, role: role.join(", ") } : { sex, role: [r, ...role].filter(Boolean).join(", ") });
     }
-    if (!a.meta.summary || /^Государство на континенте/.test(a.meta.summary))
-      set(a, "summary", `Государство на континенте ${a.meta.continent || "—"}.${a.meta.capital ? ` Столица — ${a.meta.capital}.` : ""}${a.meta.regime ? ` ${a.meta.regime}.` : ""}`);
-    const capital = a.meta.capital ? ` Столица — [[${a.meta.capital.replace(/\s*\(.*$/, "").split(",")[0].trim()}]].` : "";
-    replaceIntro(a, /^\*\*[^*]+\*\*( \([^)]*\))? — государство/, `**${a.meta.title}**${[].concat(a.meta.aliases || []).length ? ` (${[].concat(a.meta.aliases)[0]})` : ""} — государство на континенте [[${a.meta.continent}]].${capital}${a.meta.regime ? ` Политический строй — ${lower1(a.meta.regime)}.` : ""}${a.meta.war && a.meta.war !== "отсутствует" && a.meta.war !== "против всех" ? ` В [[Великая война|Великой войне]] выступает на стороне [[${a.meta.war}|${a.meta.war === "Конгломерат" ? "Конгломерата" : "Акрециса"}]].` : ""}`);
+    refreshState(a);
   }
   return `государства: ${n}`;
 }
@@ -307,6 +282,98 @@ function importContinents(rows, h) {
   return `континенты: ${n}`;
 }
 
+/* ---------- universal sheets (the table downloaded from the site, or any table made by the same rules) ---------- */
+const SECTIONS = loadSections(ROOT);
+const HELP_SHEET = "Как пользоваться";
+const races = () => ofCategory("Раса");
+const cellCtx = {
+  raceCode: t => { const r = races().find(x => String(x.meta.code ?? "").toLowerCase() === t.toLowerCase()) || findIn(races(), t); return r ? r.meta.code : null; },
+  raceByCode: c => (races().find(r => r.meta.code === c) || { meta: {} }).meta.title,
+};
+const STARTER = {
+  "Государство": t => `**${t}** — государство мира [[Канъяло]].\n\n## История\n\n*Раздел ещё не написан.*`,
+  "Житель": t => `**${t}** — житель мира [[Канъяло]].\n\n## Биография\n\n*Раздел ещё не написан.*`,
+  "Раса": t => `**${t}** — народ мира [[Канъяло]].`,
+  "Континент": t => `**${t}** — континент мира [[Канъяло]].`,
+  "Город": t => `**${t}** — город мира [[Канъяло]].`,
+  "Организация": t => `**${t}** — организация мира [[Канъяло]].`,
+  "Событие": t => `**${t}** — событие в истории мира [[Канъяло]].`,
+};
+// Extra facts from columns the site has no field for: shown on the page in «Сведения»
+function setInfo(a, name, value) {
+  const info = [].concat(a.meta.info || []).filter(Boolean).map(x => ({ ...x }));
+  const i = info.findIndex(x => normLabel(x.name) === normLabel(name));
+  if (!value) { if (i >= 0) info.splice(i, 1); } else if (i >= 0) info[i].value = value; else info.push({ name, value });
+  set(a, "info", info);
+}
+// Sheet → articles. Articles can be rows (names in the first column) or columns (names in the first row):
+// whichever direction has more headers that match the editor's fields
+function records(section, rows) {
+  const h = rows.findIndex(r => r.some(x => clean(x)));
+  if (h < 0) return null;
+  let grid = rows.slice(h);
+  const across = grid[0].filter(x => columnOf(section, x)).length, down = grid.filter(r => columnOf(section, r[0])).length;
+  if (down > across) { const w = Math.max(...grid.map(r => r.length)); grid = Array.from({ length: w }, (_, c) => grid.map(r => r[c] ?? "")); }
+  const head = grid[0].map(x => clean(x).replace(/\n/g, " "));
+  let tc = head.findIndex(x => columnOf(section, x)?.key === "title");
+  if (tc < 0) tc = 0;
+  const out = [];
+  for (const r of grid.slice(1)) {
+    const title = oneLine(r[tc]);
+    if (!title) continue;
+    const cells = {};
+    head.forEach((x, i) => { if (i !== tc && x) cells[x] = clean(r[i]); });
+    out.push({ title, cells });
+  }
+  return out;
+}
+function importSheet(f, section, sheet, baseSheet) {
+  const recs = records(section, sheet.rows) || [];
+  // The hidden copy made when the table was downloaded: only cells that differ from it were changed by the person
+  const base = baseSheet ? new Map((records(section, baseSheet.rows) || []).map(r => [norm(r.title), r.cells])) : null;
+  const list = ofCategory(section.category);
+  const knownInfo = new Set(list.flatMap(a => [].concat(a.meta.info || []).map(x => x && normLabel(x.name))));
+  const newColumns = new Set();
+  let edited = 0;
+  for (const rec of recs) {
+    const old = base && base.get(norm(rec.title));
+    const edits = Object.entries(rec.cells).filter(([h, v]) => old ? (old[h] ?? "") !== v : v !== "");
+    if (!edits.length) continue;
+    edited++;
+    let a = findIn(list, rec.title);
+    if (!a) {
+      a = newArticle({ title: rec.title, category: section.category, summary: "", stub: true }, (STARTER[section.category] || (t => `**${t}**.`))(rec.title));
+      list.push(a);
+      if (section.category === "Государство") warn(`Новое государство «${rec.title}»: его нет на карте, поэтому оно появится только в вики. Чтобы подсветить его на карте, впишите в поле «Цвет на карте» цвет с карты.`);
+    } else if (norm(a.meta.title) !== norm(rec.title) && !String(a.meta.title).split(" / ").some(x => norm(x) === norm(rec.title)) && ![].concat(a.meta.aliases || []).some(x => norm(x) === norm(rec.title)))
+      warn(`«${rec.title}» (лист «${sheet.name}») найдено как «${a.meta.title}» — данные записаны туда. Если это другая статья, напишите название точнее.`);
+    for (const [h, v] of edits) {
+      const col = columnOf(section, h);
+      if (col?.key === "title") continue;
+      if (!col) { if (!knownInfo.has(normLabel(h))) newColumns.add(h); setInfo(a, h, v); continue; }
+      const r = fromCell(v, col, cellCtx);
+      if (r.error) { warn(`«${rec.title}» (лист «${sheet.name}»), столбец «${h}»: ${r.error}. Ячейка не перенесена.`); continue; }
+      let value = r.value;
+      if (col.collection === "gosudarstva") value = [].concat(value).map(n => {
+        const st = findIn(ofCategory("Государство"), n);
+        if (!st) warn(`«${rec.title}» (лист «${sheet.name}»): государства «${n}» нет в вики. Проверьте название.`);
+        return st ? st.meta.title : n;
+      });
+      set(a, col.key, value);
+      // A new ruler with no article yet becomes a resident; existing residents are left as they are
+      if (col.key === "leaders" && section.category === "Государство")
+        for (const l of value) if (l.name && !findIn(ofCategory("Житель"), l.name)) addPerson(l.name, a.meta.title, { role: l.title });
+    }
+    if (section.category === "Государство") refreshState(a);
+    if (section.category === "Житель") {
+      if (![].concat(a.meta.states || []).length) warn(`Житель «${a.meta.title}»: не указано государство — без него житель не появится на странице «Жители» и на карте.`);
+      refreshResident(a);
+    }
+  }
+  if (newColumns.size) warn(`Лист «${sheet.name}»: новые столбцы ${[...newColumns].map(x => `«${x}»`).join(", ")} — показаны на страницах в блоке «Сведения». Если это поле, которое уже есть в редакторе, назовите столбец так же, как в редакторе.`);
+  return `лист «${sheet.name}»: строк ${recs.length}, ${base ? "изменено" : "перенесено"} ${edited}`;
+}
+
 /* ---------- run ---------- */
 if (!existsSync(XL)) { console.log("папки excel/ нет — импорт пропущен"); process.exit(0); }
 const done = existsSync(STATE_FILE) ? JSON.parse(readFileSync(STATE_FILE, "utf8")) : {};
@@ -314,26 +381,31 @@ const files = readdirSync(XL).filter(f => /\.xlsx$/i.test(f) && !f.startsWith("~
 const hash = f => createHash("sha256").update(readFileSync(join(XL, f))).digest("hex").slice(0, 16);
 const todo = files.filter(f => ALL || done[f] !== hash(f));
 if (!todo.length) { console.log("таблицы Excel не изменились — импорт не нужен"); process.exit(0); }
+const book = f => readXlsx(readFileSync(join(XL, f)));
 // Races go first: they tell which race each named character belongs to
 const kinds = [];
 for (const f of todo) {
   let sheets;
-  try { sheets = readWorkbook(join(XL, f)); } catch (e) { warn(`${f}: не удалось прочитать (${e.message}). Сохраните файл в Excel как «Книга Excel (.xlsx)».`); continue; }
-  sheets.forEach((rows, si) => {
+  try { sheets = book(f); } catch (e) { warn(`${f}: не удалось прочитать (${e.message}). Сохраните файл в Excel как «Книга Excel (.xlsx)».`); continue; }
+  for (const sheet of sheets.filter(s => !s.hidden)) {
+    const rows = sheet.rows;
+    if (!rows.some(r => r.some(x => clean(x))) || normLabel(sheet.name) === normLabel(HELP_SHEET)) continue;
+    const section = sectionOfSheet(SECTIONS, sheet.name);
+    if (section) { kinds.push({ f, order: section.category === "Раса" ? 0 : 3, run: () => importSheet(f, section, sheet, sheets.find(s => s.hidden && s.name === "_" + sheet.name)) }); continue; }
     const first = rows.findIndex(r => /^Название государства/i.test(clean(r[0])));
     const race = rows.findIndex(r => /^Название расы/i.test(clean(r[0])));
-    const cont = rows.findIndex(r => r.filter(x => CONTINENTS.includes(clean(x))).length >= 2);
-    if (race >= 0) kinds.push({ f, order: 0, run: () => importRaces(rows, race) });
+    const cont = rows.findIndex(r => !clean(r[0]) && r.filter(x => CONTINENTS.includes(clean(x))).length >= 2);
+    if (race >= 0) kinds.push({ f, order: 0, legacyRaces: true, run: () => importRaces(rows, race) });
     else if (first >= 0) kinds.push({ f, order: 1, run: () => importStates(rows, first) });
     else if (cont >= 0) kinds.push({ f, order: 2, run: () => importContinents(rows, cont) });
-    else if (rows.some(r => r.some(x => clean(x)))) warn(`${f}, лист ${si + 1}: не понятно, что это за таблица. Первая ячейка заголовка должна быть «Название государства» или «Название расы», либо в строке должны быть названия континентов.`);
-  });
+    else warn(`${f}, лист «${sheet.name}»: не понятно, в какой раздел вики его перенести. Назовите лист как раздел: ${SECTIONS.map(s => `«${s.sheet}»`).join(", ")}.`);
+  }
 }
-// The races table also tells characters' races, so read it even if only the states table changed
-if (kinds.some(k => k.order === 1) && !kinds.some(k => k.order === 0)) for (const f of files) {
-  try { readWorkbook(join(XL, f)).forEach(rows => { const h = rows.findIndex(r => /^Название расы/i.test(clean(r[0]))); if (h >= 0) kinds.push({ f, order: 0, run: () => importRaces(rows, h) }); }); } catch (_) {}
+// The first races table also tells characters' races, so read it even if only the first states table changed
+if (kinds.some(k => k.order === 1) && !kinds.some(k => k.legacyRaces)) for (const f of files) {
+  try { book(f).filter(s => !s.hidden && !sectionOfSheet(SECTIONS, s.name)).forEach(s => { const h = s.rows.findIndex(r => /^Название расы/i.test(clean(r[0]))); if (h >= 0) kinds.push({ f, order: 0, legacyRaces: true, run: () => importRaces(s.rows, h) }); }); } catch (_) {}
 }
-const summary = kinds.sort((a, b) => a.order - b.order).map(k => `${k.f}: ${k.run()}`);
+const summary = kinds.sort((a, b) => a.order - b.order).map(k => `${k.f}, ${k.run()}`);
 writeResidents();
 
 let written = 0, created = 0;

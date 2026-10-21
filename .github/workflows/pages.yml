@@ -38,6 +38,9 @@ jobs:
               sleep 3
             done
           fi
+      # Fresh table with all wiki data for admins to download: …/tables/wiki-kanyalo.xlsx
+      - name: Таблица Excel для скачивания
+        run: node tools/export-excel.mjs
       - run: node tools/build-wiki.mjs
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

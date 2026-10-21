@@ -93,6 +93,9 @@ a.wl.new{color:#A8483C;border-bottom:1px dashed rgba(168,72,60,.55)}
 .toc a{color:var(--ink)}
 
 .auto h2{font:700 26px/1.2 var(--serif);margin:36px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--rule)}
+.info-list{display:grid;grid-template-columns:minmax(120px,max-content) 1fr;gap:6px 18px;margin:0;font-size:16.5px}
+.info-list dt{font:400 14.5px/1.6 var(--ui);color:var(--ink-2)}
+.info-list dd{margin:0}
 .people-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:6px;list-style:none;margin:0;padding:0}
 .people-grid a{display:flex;align-items:center;gap:12px;padding:6px 8px;border-radius:5px;text-decoration:none;color:var(--ink)}
 .people-grid a:hover{background:var(--paper-2)}
@@ -201,7 +204,7 @@ function drawSide(cur) {
   const link = (href, text, n, key) => `<li><a href="${href}" aria-current="${key === cur}">${text}${n != null ? `<small>${n}</small>` : ""}</a></li>`;
   side.innerHTML = `<h2>Вики</h2><ul>${link("wiki/", "Главная", null, "home")}${link("wiki/kanyalo/", "О мире", null, "a/kanyalo")}${link("wiki/sluchaynaya/", "Случайная статья", null, "random")}</ul>
     <h2>Разделы</h2><ul>${CATEGORIES.filter(c => count(c.name)).map(c => link(catURL(c.name), c.plural, count(c.name), "k/" + c.name)).join("")}</ul>
-    <h2 class="hide-m">Служебное</h2><ul class="hide-m">${link("wiki/vse-stati/", "Все статьи", ARTICLES.length, "all")}${link("wiki/pravki/", "Недавние правки", null, "changes")}${IS_ADMIN ? link("wiki/nuzhno-napisat/", "Нужно написать", STUBS.length, "stubs") + link("wiki/kak-redaktirovat-viki/", "Как редактировать", null, "a/kak-redaktirovat-viki") : ""}</ul>
+    <h2 class="hide-m">Служебное</h2><ul class="hide-m">${link("wiki/vse-stati/", "Все статьи", ARTICLES.length, "all")}${link("wiki/pravki/", "Недавние правки", null, "changes")}${IS_ADMIN ? link("tables/wiki-kanyalo.xlsx", "Таблица Excel", null, "") + link("wiki/nuzhno-napisat/", "Нужно написать", STUBS.length, "stubs") + link("wiki/kak-redaktirovat-viki/", "Как редактировать", null, "a/kak-redaktirovat-viki") : ""}</ul>
     ${IS_ADMIN ? `<a class="act" href="admin/">Редактор вики</a><p class="admin-note">Вы вошли как редактор</p>` : ""}`;
 }
 
@@ -264,6 +267,8 @@ function autoSections(a) {
     const rs = RESIDENTS.filter(r => r.race === a.code);
     if (rs.length) h += `<h2>Жители этого народа</h2><ul class="people-grid">${rs.map(r => `<li><a href="${articleURL(r.article)}">${faceHTML(r, 32)}<span>${esc(r.name)}<small>${esc(STATE_BY_ID[r.states[0]].name)}</small></span></a></li>`).join("")}</ul>`;
   }
+  const info = asList(a.info).filter(i => i && i.name && i.value);
+  if (info.length) h = `<h2>Сведения</h2><dl class="info-list">${info.map(i => `<dt>${esc(i.name)}</dt><dd>${findArticle(String(i.value)) ? linkFor(String(i.value)) : esc(i.value)}</dd>`).join("")}</dl>` + h;
   return h ? `<div class="auto">${h}</div>` : "";
 }
 function toc(html) {

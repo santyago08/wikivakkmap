@@ -1,3 +1,6 @@
 _old-minecraft/
 # собирается автоматически из articles/
 wiki/
+
+# таблица Excel, собирается автоматически (tools/export-excel.mjs)
+tables/
