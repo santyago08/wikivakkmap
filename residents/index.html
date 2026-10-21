@@ -167,6 +167,7 @@ function show(id, { scroll = true } = {}) {
   card.innerHTML = `<p class="kicker"><a href="./#${home.id}">${home.name}</a></p>
     <h2>${r.name}</h2>
     <dl class="facts">
+      ${r.role ? `<dt>Роль</dt><dd>${esc(r.role)}</dd>` : ""}
       ${r.kind ? `<dt>Сущность</dt><dd>${r.kind}</dd>` : `<dt>Народ</dt><dd><a href="${articleURL(findArticle(raceTitle(r.race)) || {slug: ''})}">${esc(raceTitle(r.race))}</a></dd><dt>Пол</dt><dd>${sexWord(r)}</dd>`}
       <dt>Государство</dt><dd>${r.states.map(s => `<a href="./#${s}">${STATE_BY_ID[s].name}</a>`).join(", ")}</dd>
       <dt>Великая война</dt><dd><span class="side" style="--c:${WAR_SIDES[L_.war].color}">${L_.war}</span></dd>

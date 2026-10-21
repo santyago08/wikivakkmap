@@ -19,6 +19,8 @@ document.documentElement.classList.toggle("is-admin", IS_ADMIN);
 const ARTICLES = WIKI.articles.filter(a => IS_ADMIN || !a.admin);
 const ART = {}, ART_BY_NAME = {};
 ARTICLES.forEach(a => { ART[a.slug] = a; [a.title, ...asList(a.aliases)].forEach(t => ART_BY_NAME[String(t).toLowerCase()] = a); });
+// «Айзис / Аббас Юнус» is also found as «Айзис» and «Аббас Юнус»
+ARTICLES.forEach(a => String(a.title).split(" / ").forEach(t => ART_BY_NAME[t.trim().toLowerCase()] ||= a));
 const findArticle = name => ART_BY_NAME[String(name).trim().toLowerCase()] || ART[slug(name)] || null;
 const CATEGORIES = [
   { name: "Государство", plural: "Государства" }, { name: "Житель", plural: "Жители" }, { name: "Континент", plural: "Континенты" },
@@ -60,14 +62,14 @@ CITIES.forEach(c => { c.stateObj = c.state ? STATE_BY_COLOR[c.state] || null : n
 const RESIDENTS = byCategory("Житель").map(a => ({
   id: a.slug, name: a.title, race: a.race || null, sex: a.sex || null, kind: a.kind || null,
   states: asList(a.states).map(n => stateOfName(n)).filter(Boolean).map(s => s.id),
-  skin: a.skin || null, slim: a.slim, article: a,
+  skin: a.skin || null, slim: a.slim, role: a.role || null, article: a,
 })).filter(r => r.states.length);
 const RES_BY_ID = {};
 RESIDENTS.forEach(r => RES_BY_ID[r.id] = r);
 STATES.forEach(s => { s.residents = RESIDENTS.filter(r => r.states.includes(s.id)); if (s.lore) s.lore.people = s.residents; });
 const raceTitle = code => { const a = ARTICLES.find(x => x.category === "Раса" && x.code === code); return a ? a.title : code; };
 const sexWord = r => r.sex === "Ж" ? "женщина" : r.sex === "М" ? "мужчина" : "";
-const residentLine = r => r.kind ? r.kind : [r.race ? raceTitle(r.race) : "", sexWord(r)].filter(Boolean).join(", ");
+const residentLine = r => [r.role, r.kind ? r.kind : [r.race ? raceTitle(r.race) : "", sexWord(r)].filter(Boolean).join(", ")].filter(Boolean).join(" · ");
 
 /* ---------- skins & faces ---------- */
 function skinOf(r) {
@@ -119,6 +121,16 @@ function linkFor(target, text) {
   if (c) return `<a class="wl city" href="${cityURL(c)}">${label}</a>`;
   if (!IS_ADMIN) return `<span class="wl-missing">${label}</span>`;
   return `<a class="wl new" href="${newArticleURL(t)}" title="Статьи «${esc(t)}» ещё нет — нажмите, чтобы создать">${label}</a>`;
+}
+// "Кивин, Аларанец (подземные), Механат" → links where an article or city exists, plain text elsewhere (no red links)
+function softLinks(text, cities = true) {
+  const parts = []; let cur = "", depth = 0;
+  for (const ch of String(text ?? "")) { if (ch === "(") depth++; if (ch === ")") depth--; if (ch === "," && !depth) { parts.push(cur); cur = ""; } else cur += ch; }
+  parts.push(cur);
+  return parts.map(p => p.trim()).filter(Boolean).map(p => {
+    const name = p.replace(/\s*\(.*$/, ""), rest = p.slice(name.length);
+    return findArticle(name) || (cities && CITY_BY_NAME[name.toLowerCase()]) ? linkFor(name) + esc(rest) : esc(p);
+  }).join(", ");
 }
 function blockHTML(name, arg) {
   if (name === "категория") {

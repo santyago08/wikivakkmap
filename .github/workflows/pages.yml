@@ -5,7 +5,7 @@ on:
     branches: [main]
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write       # чтобы сохранить статьи, созданные из таблиц Excel
   pages: write
   id-token: write
 # Several saves in a row: only the newest run continues, older ones are cancelled (grey, not an error).
@@ -25,6 +25,19 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+      # Tables in excel/ that changed since the last import → articles. The result is saved to the repository,
+      # so the editor shows the imported fields. A push made here does not start another run.
+      - name: Импорт из Excel
+        run: |
+          node tools/import-excel.mjs
+          git add articles excel
+          if ! git diff --cached --quiet; then
+            git -c user.name="Импорт из Excel" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -q -m "Импорт из Excel"
+            for i in 1 2 3; do
+              if git pull -q --rebase origin main; then git push -q origin HEAD:main && break; else git rebase --abort; fi
+              sleep 3
+            done
+          fi
       - run: node tools/build-wiki.mjs
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

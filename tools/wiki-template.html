@@ -207,29 +207,30 @@ function drawSide(cur) {
 
 /* ---------- views ---------- */
 const stateFor = a => STATES.find(s => s.article === a);
+const leadersOf = a => asList(a.leaders).map(l => typeof l === "string" ? { name: l, title: "" } : l).filter(l => l && l.name);
 function infobox(a) {
   const st = a.category === "Государство" && stateFor(a), r = a.category === "Житель" && RES_BY_ID[a.slug];
   if (st) {
     const L = st.lore, cities = CITIES.filter(c => c.stateObj === st);
     return `<aside class="infobox" style="--c:${st.color}"><div class="ib-head"><span class="seal" style="--c:${st.color}"></span><div><div class="ib-title">${esc(a.title)}</div><div class="ib-cat">Государство</div></div></div><dl>
       <dt>Континент</dt><dd>${linkFor(st.continent)}</dd>
-      ${L ? `<dt>Столица</dt><dd>${CITY_BY_NAME[L.capital.toLowerCase()] ? linkFor(L.capital) : esc(L.capital)}</dd><dt>Режим</dt><dd>${esc(L.regime)}</dd><dt>Великая война</dt><dd><span class="side" style="--c:${WAR_SIDES[L.war].color}">${["Конгломерат", "Акрецис"].includes(L.war) ? linkFor(L.war) : esc(L.war)}</span></dd><dt>Тема</dt><dd>${esc(L.theme)}</dd>` : ""}
+      ${L ? `<dt>Столица</dt><dd>${CITY_BY_NAME[L.capital.toLowerCase()] ? linkFor(L.capital) : esc(L.capital)}</dd><dt>Строй</dt><dd>${esc(L.regime)}</dd>${a.ideology ? `<dt>Идеология</dt><dd>${esc(a.ideology)}</dd>` : ""}${leadersOf(a).length ? `<dt>${leadersOf(a).length > 1 ? "Правители" : "Правитель"}</dt><dd>${leadersOf(a).map(l => softLinks(l.name) + (l.title ? ` <small>(${esc(l.title)})</small>` : "")).join("<br>")}</dd>` : ""}${a.main_race ? `<dt>Народ</dt><dd>${a.main_race.split("/").map(x => softLinks(x.trim())).join(" / ")}</dd>` : ""}${a.gdp ? `<dt>ВВП</dt><dd>${esc(a.gdp)}</dd>` : ""}<dt>Великая война</dt><dd><span class="side" style="--c:${WAR_SIDES[L.war].color}">${["Конгломерат", "Акрецис"].includes(L.war) ? linkFor(L.war) : esc(L.war)}</span></dd><dt>Тема</dt><dd>${esc(L.theme)}</dd>` : ""}
       <dt>Города</dt><dd>${cities.length}</dd>${st.residents.length ? `<dt>Жители</dt><dd>${st.residents.length} в записях</dd>` : ""}</dl>
       <a class="ib-act" href="./#${st.id}">Показать на карте</a></aside>`;
   }
   if (r) {
     return `<aside class="infobox" style="--c:${STATE_BY_ID[r.states[0]].color}"><div class="ib-head">${faceHTML(r, 64)}<div><div class="ib-title">${esc(a.title)}</div><div class="ib-cat">Житель</div></div></div><dl>
-      ${r.kind ? `<dt>Сущность</dt><dd>${esc(r.kind)}</dd>` : `${r.race ? `<dt>Народ</dt><dd>${linkFor(raceTitle(r.race))}</dd>` : ""}${r.sex ? `<dt>Пол</dt><dd>${sexWord(r)}</dd>` : ""}`}
+      ${r.role ? `<dt>Роль</dt><dd>${esc(r.role)}</dd>` : ""}${r.kind ? `<dt>Сущность</dt><dd>${esc(r.kind)}</dd>` : `${r.race ? `<dt>Народ</dt><dd>${linkFor(raceTitle(r.race))}</dd>` : ""}${r.sex ? `<dt>Пол</dt><dd>${sexWord(r)}</dd>` : ""}`}
       <dt>Государство</dt><dd>${r.states.map(id => linkFor(STATE_BY_ID[id].name)).join(", ")}</dd></dl>
       <a class="ib-act" href="residents/#${r.id}">Облик в 3D</a></aside>`;
   }
   if (a.category === "Континент") {
     const n = STATES.filter(s => s.continent === a.title).length;
-    return `<aside class="infobox"><div class="ib-head"><div><div class="ib-title">${esc(a.title)}</div><div class="ib-cat">Континент</div></div></div><dl><dt>Государства</dt><dd>${n}</dd><dt>Города</dt><dd>${CITIES.filter(c => c.stateObj && c.stateObj.continent === a.title).length}</dd></dl>
+    return `<aside class="infobox"><div class="ib-head"><div><div class="ib-title">${esc(a.title)}</div><div class="ib-cat">Континент</div></div></div><dl>${a.location ? `<dt>Где</dt><dd>${esc(a.location)}</dd>` : ""}${a.main_races ? `<dt>Главные расы</dt><dd>${softLinks(a.main_races)}</dd>` : ""}<dt>Государства</dt><dd>${n}</dd><dt>Города</dt><dd>${CITIES.filter(c => c.stateObj && c.stateObj.continent === a.title).length}</dd></dl>
       <a class="ib-act" href="./#continent/${encodeURIComponent(a.title)}">Показать на карте</a></aside>`;
   }
   if (a.category === "Раса") {
-    return `<aside class="infobox"><div class="ib-head"><div><div class="ib-title">${esc(a.title)}</div><div class="ib-cat">Народ</div></div></div><dl><dt>Обозначение</dt><dd>${esc(a.code || a.title)}</dd><dt>В записях</dt><dd>${RESIDENTS.filter(r => r.race === a.code).length}</dd></dl></aside>`;
+    return `<aside class="infobox"><div class="ib-head"><div><div class="ib-title">${esc(a.title)}</div><div class="ib-cat">${esc(a.group || "Народ")}</div></div></div><dl><dt>Обозначение</dt><dd>${esc(a.code || a.title)}</dd>${[["analog", "Аналог"], ["height", "Рост, см"], ["lifespan", "Живут, лет"], ["homeland", "Родина"], ["god", "Поклоняются"]].filter(([k]) => a[k]).map(([k, t]) => `<dt>${t}</dt><dd>${k === "homeland" ? softLinks(a[k]) : k === "god" ? softLinks(a[k], false) : esc(a[k])}</dd>`).join("")}<dt>В записях</dt><dd>${RESIDENTS.filter(r => r.race === a.code).length}</dd></dl></aside>`;
   }
   if (a.side && WAR_SIDES[a.side]) {
     return `<aside class="infobox" style="--c:${WAR_SIDES[a.side].color}"><div class="ib-head"><span class="seal" style="--c:${WAR_SIDES[a.side].color}"></span><div><div class="ib-title">${esc(a.title)}</div><div class="ib-cat">Союз Великой войны</div></div></div><dl><dt>Государства</dt><dd>${STATES.filter(s => s.lore && s.lore.war === a.side).length}</dd></dl></aside>`;
@@ -246,12 +247,20 @@ function autoSections(a) {
   const st = a.category === "Государство" && stateFor(a);
   let h = "";
   if (st && st.residents.length) h += `<h2>Жители</h2><ul class="people-grid">${st.residents.map(r => `<li><a href="${articleURL(r.article)}">${faceHTML(r, 32)}<span>${esc(r.name)}<small>${esc(residentLine(r))}</small></span></a></li>`).join("")}</ul>`;
+  if (a.category === "Государство" && (a.main_race || a.other_races)) h += `<h2>Население</h2><p class="body">${a.main_race ? `Главный народ: ${a.main_race.split("/").map(x => softLinks(x.trim())).join(" / ")}.` : ""}${a.other_races ? ` Другие народы: ${softLinks(a.other_races)}.` : ""}</p>`;
   if (st) { const cs = CITIES.filter(c => c.stateObj === st); if (cs.length) h += `<h2>Города</h2><p class="body">${cs.map(c => findArticle(c.name) ? linkFor(c.name) : `<a class="wl city" href="${cityURL(c)}">${c.major ? `<b>${esc(c.name)}</b>` : esc(c.name)}</a>`).join(", ")}</p>`; }
   if (a.category === "Континент") {
+    if (a.climate) h += `<h2>Климат</h2><p class="body">${esc(a.climate)}</p>`;
+    if (a.main_races || a.other_races) h += `<h2>Народы</h2><p class="body">${a.main_races ? `Главные: ${softLinks(a.main_races)}.` : ""}${a.other_races ? ` Прочие: ${softLinks(a.other_races)}.` : ""}</p>`;
+    if (a.key_states) h += `<h2>Важные государства</h2><p class="body">${softLinks(a.key_states)}</p>`;
     const ss = STATES.filter(s => s.continent === a.title).sort((x, y) => x.name.localeCompare(y.name, "ru"));
     if (ss.length) h += `<h2>Государства</h2><ul class="state-list">${ss.map(s => `<li style="--c:${s.color}"><span class="dot"></span>${linkFor(s.name)}</li>`).join("")}</ul>`;
   }
   if (a.category === "Раса") {
+    const sec = (t, html) => html ? `<h2>${t}</h2>${html}` : "", p = v => v ? `<p class="body">${esc(v)}</p>` : "";
+    h += sec("Черты", p(a.traits)) + sec("Виды", asList(a.subspecies).length ? `<ul class="body">${asList(a.subspecies).map(x => `<li>${esc(x)}</li>`).join("")}</ul>` : "")
+      + sec("Взгляды", p(a.views)) + sec("Сильнейшие государства", a.strongest ? `<p class="body">${softLinks(a.strongest)}</p>` : "")
+      + sec("Главные персонажи", a.characters ? `<p class="body">${softLinks(a.characters, false)}</p>` : "") + sec("Прочее", p(a.extra));
     const rs = RESIDENTS.filter(r => r.race === a.code);
     if (rs.length) h += `<h2>Жители этого народа</h2><ul class="people-grid">${rs.map(r => `<li><a href="${articleURL(r.article)}">${faceHTML(r, 32)}<span>${esc(r.name)}<small>${esc(STATE_BY_ID[r.states[0]].name)}</small></span></a></li>`).join("")}</ul>`;
   }

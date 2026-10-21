@@ -32,7 +32,19 @@ collections:
       - { name: aliases, label: "Другие названия", widget: list, required: false }
       - { name: continent, label: Континент, widget: select, required: false, options: [Афана, Гайва, Дзайвелл, Заккервад, Зинсейда, Мирам, Равейя, Ревен, Цакерей] }
       - { name: capital, label: Столица, widget: string, required: false }
-      - { name: regime, label: "Форма правления", widget: string, required: false }
+      - { name: continents, label: "Все континенты", widget: list, required: false, hint: "Если государство лежит на нескольких континентах" }
+      - { name: regime, label: "Политический строй", widget: string, required: false }
+      - { name: ideology, label: Идеология, widget: string, required: false }
+      - name: leaders
+        label: Правители
+        widget: list
+        required: false
+        fields:
+          - { name: name, label: Имя, widget: string }
+          - { name: title, label: Титул, widget: string, required: false }
+      - { name: main_race, label: "Главный народ", widget: string, required: false, hint: "Если раса лидера другая: «раса лидера / главная раса»" }
+      - { name: other_races, label: "Другие народы и законы о них", widget: string, required: false }
+      - { name: gdp, label: "ВВП перед Великой войной (усл. ед.)", widget: string, required: false }
       - { name: war, label: "Сторона в Великой войне", widget: select, required: false, options: [Конгломерат, Акрецис, против всех, отсутствует] }
       - { name: theme, label: "Тема (музыка)", widget: string, required: false }
       - { name: image, label: "Герб или флаг", widget: image, required: false }
@@ -55,6 +67,7 @@ collections:
       - { name: states, label: Государство, widget: relation, collection: gosudarstva, search_fields: [title], value_field: title, display_fields: [title], multiple: true }
       - { name: race, label: "Народ (обозначение)", widget: relation, collection: rasy, search_fields: [title, code], value_field: code, display_fields: [title], required: false }
       - { name: sex, label: Пол, widget: select, options: [М, Ж], required: false }
+      - { name: role, label: "Должность или роль", widget: string, required: false }
       - { name: kind, label: "Особая сущность", widget: string, required: false, hint: "Только для не-людей, например «Великий Червь». У таких жителей нет 3D-облика" }
       - { name: skin, label: "Скин", widget: string, required: false, hint: "Ник Minecraft-аккаунта со скином или путь к файлу, например images/skin-ivan.png" }
       - { name: slim, label: "Тонкие руки (модель Алекс)", widget: boolean, required: false }
@@ -88,6 +101,11 @@ collections:
       - { name: title, label: Название, widget: string }
       - { name: category, label: Раздел, widget: hidden, default: Континент }
       - *summary
+      - { name: location, label: "Расположение на карте", widget: string, required: false }
+      - { name: main_races, label: "Главные расы", widget: string, required: false }
+      - { name: other_races, label: "Прочие расы", widget: string, required: false }
+      - { name: key_states, label: "Важные государства", widget: string, required: false }
+      - { name: climate, label: "Климатические зоны", widget: text, required: false }
       - *stub
       - *body
 
@@ -103,6 +121,18 @@ collections:
       - { name: code, label: "Обозначение", widget: string, hint: "Сокращение, которым отмечены жители (Кив, Мех…). Не меняйте у существующих народов" }
       - { name: category, label: Раздел, widget: hidden, default: Раса }
       - *summary
+      - { name: group, label: Группа, widget: string, required: false, hint: "Близкие к людям, Прочие существа, Мутанты…" }
+      - { name: analog, label: "Аналог по-нашему", widget: string, required: false, hint: "Например: Дворф, Эльф" }
+      - { name: traits, label: Черты, widget: text, required: false }
+      - { name: height, label: "Средний рост (см)", widget: string, required: false }
+      - { name: lifespan, label: "Продолжительность жизни (лет)", widget: string, required: false }
+      - { name: subspecies, label: Виды, widget: list, required: false }
+      - { name: homeland, label: "Исходные континенты", widget: string, required: false }
+      - { name: strongest, label: "Сильнейшие государства", widget: string, required: false }
+      - { name: characters, label: "Главные персонажи", widget: string, required: false }
+      - { name: views, label: "Главные взгляды", widget: text, required: false }
+      - { name: god, label: "Кому поклоняются", widget: string, required: false }
+      - { name: extra, label: "Прочее", widget: text, required: false }
       - { name: image, label: Изображение, widget: image, required: false }
       - *stub
       - *body
