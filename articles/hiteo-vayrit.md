@@ -1,10 +1,15 @@
 ---
 title: Хитео Вайрит
 category: Житель
-race: Мех
+summary: 'Житель: Республика Вельтрау.'
+states:
+  - Республика Вельтрау
+race: М
 sex: М
-states: [Республика Вельтрау]
-summary: "Житель: Республика Вельтрау."
+kind: ''
+skin: ''
+slim: false
+portrait: ''
 stub: true
 ---
 
