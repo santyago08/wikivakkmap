@@ -1,10 +1,15 @@
 ---
 title: Севиере Ла Вас
 category: Житель
-race: Кив
+summary: 'Житель: Лиресёрц.'
+states:
+  - Лиресёрц
+race: Ч
 sex: М
-states: [Лиресёрц]
-summary: "Житель: Лиресёрц."
+kind: ''
+skin: ''
+slim: false
+portrait: ''
 stub: true
 ---
 
