@@ -1,10 +1,15 @@
 ---
 title: Юнона Барион
 category: Житель
-race: Мех
+summary: 'Житель: Аразийский Механат.'
+states:
+  - Аразийский Механат
+race: М
 sex: Ж
-states: [Аразийский Механат]
-summary: "Житель: Аразийский Механат."
+kind: ''
+skin: ''
+slim: false
+portrait: ''
 stub: true
 ---
 
