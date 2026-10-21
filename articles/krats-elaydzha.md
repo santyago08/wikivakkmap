@@ -1,10 +1,15 @@
 ---
 title: Крац Элайджа
 category: Житель
-race: К
+summary: 'Житель: Лиресёрц.'
+states:
+  - Лиресёрц
+race: Э
 sex: М
-states: [Лиресёрц]
-summary: "Житель: Лиресёрц."
+kind: ''
+skin: ''
+slim: false
+portrait: ''
 stub: true
 ---
 
