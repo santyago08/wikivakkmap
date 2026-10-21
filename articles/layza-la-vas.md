@@ -1,10 +1,15 @@
 ---
 title: Лайза Ла Вас
 category: Житель
-race: Кив
+summary: 'Житель: Лиресёрц.'
+states:
+  - Лиресёрц
+race: Ч
 sex: Ж
-states: [Лиресёрц]
-summary: "Житель: Лиресёрц."
+kind: ''
+skin: ''
+slim: false
+portrait: ''
 stub: true
 ---
 
